@@ -20,14 +20,14 @@ const ragPhases: Phase[] = [
   {
     id: 'embedding-generation',
     name: 'Embedding Generation',
-    description: 'Embedding model reads chunks, produces vectors for the vector DB.',
+    description: 'Embedding model reads every chunk in the corpus and produces vectors. At scale, this is a sustained storage read workload.',
     role: 'primary',
     roleLabel: 'SOURCE READ',
     s3Paths: [
       's3://rag-processed/chunks/doc-{id}-chunk-{001..N}.json',
     ],
-    details: 'An embedding model reads each chunk and produces dense vector representations. Object storage is the read source. After embedding, vectors land in a vector database (Milvus, Weaviate, Pinecone, Clickhouse).',
-    ioProfile: 'Sequential reads of all chunks during embedding pass',
+    details: 'An embedding model reads each chunk and produces dense vector representations. Object storage is the read source for every chunk. At corpus scale — millions of documents, tens of millions of chunks — this is a sustained, sequential read workload that can run for hours or days. Re-embedding (new model, different chunk size, dimension change) means reading the entire corpus again from object storage. This is not a one-time operation: as your document base grows and embedding models improve, you will re-embed repeatedly.',
+    ioProfile: 'Sustained sequential reads of entire corpus, hours-to-days at scale',
   },
   {
     id: 'vector-db',
@@ -148,12 +148,13 @@ export default function RAG() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
                   </svg>
                 </span>
-                Re-embedding Safety Net
+                Corpus-Scale Embedding
               </h3>
               <p className="text-gray-600">
-                New embedding model? Different chunk sizes? Dimension change? You'll need to re-embed 
-                everything. Object storage as the source-of-truth means you can always regenerate your 
-                vector index from the original documents.
+                Embedding isn't a one-time setup. Millions of documents, tens of millions of chunks, each 
+                read from object storage and passed through an embedding model. At enterprise scale this 
+                runs for hours or days — a sustained storage read workload. When you upgrade your embedding 
+                model or change chunk sizes, you do it all again.
               </p>
             </div>
 
@@ -213,8 +214,8 @@ export default function RAG() {
                 </tr>
                 <tr>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Embedding Pass</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sequential reads</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Per ingestion batch</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sustained sequential reads</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Entire corpus per pass (hours-days)</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Read throughput</td>
                 </tr>
                 <tr>
