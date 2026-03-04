@@ -75,23 +75,6 @@ export default function Inference() {
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Critical Callout */}
-        <section className="mb-12">
-          <div className="bg-raspberry/5 border-2 border-raspberry rounded-xl p-8">
-            <h2 className="text-2xl font-bold text-raspberry mb-4">The Most Important Point on This Entire Site</h2>
-            <p className="text-lg text-gray-700 mb-4">
-              During active inference — the milliseconds when the GPU is generating tokens — 
-              <span className="font-bold"> object storage is not in the path</span>. 
-              Not latency. Not throughput. Not IOPS. It's just not there.
-            </p>
-            <p className="text-gray-600">
-              The model weights are already in GPU memory. The KV cache lives in VRAM. 
-              The tokenizer is in CPU memory. The forward pass is pure matrix multiplication on the GPU. 
-              Anyone who claims otherwise is either confused or selling something.
-            </p>
-          </div>
-        </section>
-
         {/* Visual Diagram */}
         <section className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Pipeline Overview</h2>
