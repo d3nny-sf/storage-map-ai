@@ -12,14 +12,18 @@ All performance data is cross-referenced with the [MinIO High-Performance Object
 
 ## What's Inside
 
+### Overview
+
+Four pipeline cards (Training, RAG, Fine-Tuning, Inference) with storage-intensity badges. Each card deep-links to its Explorer view. Bottom Line CTA links to the Comparison Matrix.
+
 ### Interactive Explorer
 
-The core of the app. Six views, one unified interface:
+The core of the app. Six views, one unified interface, with a color-coded guided path (green "START HERE" on Reference Architecture, green "FOLLOW" badges on subsequent views):
 
 | View | What It Shows |
 |------|---------------|
 | **Reference Architecture** | Prescriptive 10-phase pipeline — one stack, clear tiers, step-by-step |
-| **Storage Tiers** | The 4-tier layout (T0 NVMe Block, T1 Hot S3, T2 S3 over RDMA, T3 Cold Archive) |
+| **Storage Tiers** | The 4-tier layout (T0 NVMe Block, T1 Hot S3, T2 S3 over RDMA, T3 Cold Archive) with Data Lake vs Lakehouse modal |
 | **Training Pipeline** | Pre-training data flow with animated nodes and clickable phases |
 | **RAG Pipeline** | Ingestion, chunking, embedding, vector search, generation |
 | **Fine-Tuning** | LoRA/QLoRA adapter training — same patterns, dramatically smaller scale |
@@ -35,9 +39,13 @@ Side-by-side matrix of all four workloads across seven lifecycle phases. Each ce
 
 Complete namespace design for organizing AI/ML storage — 10 path groups with tier badges, I/O profiles, volume scales, and SDK examples.
 
-### Glossary
+### Glossary & Reference
 
-43 terms across three categories (AI/ML, Storage Infrastructure, MinIO AIStor) — all sourced from the whitepaper and real-world usage.
+Consolidated reference page with three sections:
+
+- **Data Gravity** — logarithmic scale visualization comparing data volumes across AI workloads
+- **Common Misconceptions** — five myths about AI storage, busted with technical reality
+- **Glossary Terms** — 43 terms across three categories (AI/ML, Storage Infrastructure, MinIO AIStor), searchable, filterable by category, with related-term navigation
 
 ## The 4-Tier Storage Model
 
@@ -91,14 +99,14 @@ src/
     ReferenceArchitecture.tsx          # 10-phase prescriptive guide
     StorageLayoutExplorer.tsx          # 4-tier storage visualization
     DataGravityChart.tsx               # Logarithmic data scale comparison
-    PipelineDiagram.tsx                # Shared layout primitives
+    PipelineDiagram.tsx                # PageHeader + BottomLine shared components
     Layout.tsx                         # App shell, nav, footer
   pages/
     Home.tsx                           # Landing page + pipeline cards
     Explorer.tsx                       # Unified explorer (6 views)
     Compare.tsx                        # Cross-pipeline comparison matrix
     Paths.tsx                          # S3 namespace reference
-    Glossary.tsx                       # 43-term glossary
+    Glossary.tsx                       # Data Gravity, Misconceptions, 43-term glossary
 ```
 
 ## Storage Examples
