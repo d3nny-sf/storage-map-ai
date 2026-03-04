@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { PageHeader, BottomLine } from '../components/PipelineDiagram'
 import InteractiveTrainingExplorer from '../components/InteractiveTrainingExplorer'
 import InteractiveRAGExplorer from '../components/InteractiveRAGExplorer'
@@ -9,8 +10,27 @@ import ReferenceArchitecture from '../components/ReferenceArchitecture'
 
 type ViewType = 'reference' | 'storage-layout' | 'training' | 'rag' | 'fine-tuning' | 'inference'
 
+const validViews: ViewType[] = ['reference', 'storage-layout', 'training', 'rag', 'fine-tuning', 'inference']
+
 export default function Explorer() {
-  const [activeView, setActiveView] = useState<ViewType>('reference')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const viewParam = searchParams.get('view') as ViewType | null
+  const initialView: ViewType = viewParam && validViews.includes(viewParam) ? viewParam : 'reference'
+  const [activeView, setActiveView] = useState<ViewType>(initialView)
+
+  // Sync URL → state when query param changes (e.g. back/forward navigation)
+  useEffect(() => {
+    const v = searchParams.get('view') as ViewType | null
+    if (v && validViews.includes(v) && v !== activeView) {
+      setActiveView(v)
+    }
+  }, [searchParams])
+
+  // Sync state → URL when user clicks a tab
+  const handleViewChange = (view: ViewType) => {
+    setActiveView(view)
+    setSearchParams(view === 'reference' ? {} : { view })
+  }
 
   const views: { id: ViewType; name: string; description: string; available: boolean; badge?: string }[] = [
     { 
@@ -64,7 +84,7 @@ export default function Explorer() {
           {views.map(view => (
             <button
               key={view.id}
-              onClick={() => view.available && setActiveView(view.id)}
+              onClick={() => view.available && handleViewChange(view.id)}
               disabled={!view.available}
               className={`relative px-5 py-3 rounded-xl font-medium text-sm transition-all ${
                 activeView === view.id

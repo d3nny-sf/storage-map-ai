@@ -494,10 +494,10 @@ const tierColors: Record<number, { bg: string; text: string; label: string }> = 
 }
 
 const workloads = [
-  { key: 'training',    label: 'Training',    color: 'text-raspberry' },
-  { key: 'rag',         label: 'RAG',         color: 'text-amber-600' },
-  { key: 'fineTuning',  label: 'Fine-Tuning', color: 'text-blue-600' },
-  { key: 'inference',   label: 'Inference',   color: 'text-emerald-600' },
+  { key: 'training',    label: 'Training',    color: 'text-raspberry',      explorerView: 'training' },
+  { key: 'rag',         label: 'RAG',         color: 'text-amber-600',      explorerView: 'rag' },
+  { key: 'fineTuning',  label: 'Fine-Tuning', color: 'text-blue-600',       explorerView: 'fine-tuning' },
+  { key: 'inference',   label: 'Inference',    color: 'text-emerald-600',   explorerView: 'inference' },
 ]
 
 // =============================================================================
@@ -689,7 +689,7 @@ export default function Compare() {
                       {workloads.map((wl) => (
                         <th key={wl.key} className="px-5 py-4 text-center">
                           <Link
-                            to="/explorer"
+                            to={`/explorer?view=${wl.explorerView}`}
                             className={`text-sm font-bold ${wl.color} hover:underline transition-colors flex items-center justify-center gap-1.5`}
                           >
                             {wl.label}
@@ -1299,18 +1299,36 @@ export default function Compare() {
         {/* ============================================================= */}
         <section className="mb-12">
           <div className="bg-gradient-to-r from-raspberry/5 via-raspberry/10 to-raspberry/5 rounded-2xl border-2 border-raspberry/20 p-6">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div>
-                <h3 className="font-bold text-gray-900 text-lg mb-1">Explore Each Pipeline in Detail</h3>
-                <p className="text-sm text-gray-600">
-                  Interactive SVG diagrams with animated data flows, clickable nodes, S3 paths, and MinIO AIStor features for every pipeline.
-                </p>
-              </div>
+            <div className="mb-4">
+              <h3 className="font-bold text-gray-900 text-lg mb-1">Explore Each Pipeline in Detail</h3>
+              <p className="text-sm text-gray-600">
+                Interactive SVG diagrams with animated data flows, clickable nodes, S3 paths, and MinIO AIStor features for every pipeline.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
               <Link
-                to="/explorer"
-                className="flex-shrink-0 px-6 py-3 bg-gradient-to-r from-raspberry to-raspberry-dark text-white font-semibold rounded-xl shadow-lg shadow-raspberry/30 hover:shadow-xl hover:shadow-raspberry/40 transition-all"
+                to="/explorer?view=training"
+                className="px-5 py-2.5 bg-gradient-to-r from-raspberry to-raspberry-dark text-white font-semibold rounded-xl shadow-lg shadow-raspberry/30 hover:shadow-xl hover:shadow-raspberry/40 transition-all text-sm"
               >
-                Open Explorer
+                Training Pipeline
+              </Link>
+              <Link
+                to="/explorer?view=rag"
+                className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40 transition-all text-sm"
+              >
+                RAG Pipeline
+              </Link>
+              <Link
+                to="/explorer?view=fine-tuning"
+                className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all text-sm"
+              >
+                Fine-Tuning
+              </Link>
+              <Link
+                to="/explorer?view=inference"
+                className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transition-all text-sm"
+              >
+                Inference
               </Link>
             </div>
           </div>

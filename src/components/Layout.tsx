@@ -167,12 +167,12 @@ export default function Layout() {
               </h3>
               <ul className="space-y-3">
                 {[
-                  { to: '/explorer', label: 'Model Training' },
-                  { to: '/explorer', label: 'RAG Pipelines' },
-                  { to: '/explorer', label: 'Fine-Tuning (LoRA)' },
-                  { to: '/explorer', label: 'Inference' },
+                  { to: '/explorer?view=training', label: 'Model Training' },
+                  { to: '/explorer?view=rag', label: 'RAG Pipelines' },
+                  { to: '/explorer?view=fine-tuning', label: 'Fine-Tuning (LoRA)' },
+                  { to: '/explorer?view=inference', label: 'Inference' },
                 ].map((item) => (
-                  <li key={item.to}>
+                  <li key={item.label}>
                     <Link 
                       to={item.to} 
                       className="text-sm hover:text-white transition-colors duration-200 flex items-center gap-2 group"
