@@ -636,17 +636,17 @@ export default function InteractiveTrainingExplorer() {
             </linearGradient>
             
             {/* Arrow markers */}
-            <marker id="arrowPrimary" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-              <polygon points="0 0, 10 3.5, 0 7" fill="#C72C48" />
+            <marker id="arrowPrimary" markerWidth="14" markerHeight="10" refX="13" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+              <polygon points="0 0, 14 5, 0 10" fill="#C72C48" />
             </marker>
-            <marker id="arrowBuffered" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-              <polygon points="0 0, 10 3.5, 0 7" fill="#F59E0B" />
+            <marker id="arrowBuffered" markerWidth="14" markerHeight="10" refX="13" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+              <polygon points="0 0, 14 5, 0 10" fill="#F59E0B" />
             </marker>
-            <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-              <polygon points="0 0, 10 3.5, 0 7" fill="#10B981" />
+            <marker id="arrowGreen" markerWidth="14" markerHeight="10" refX="13" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+              <polygon points="0 0, 14 5, 0 10" fill="#10B981" />
             </marker>
-            <marker id="arrowGray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-              <polygon points="0 0, 10 3.5, 0 7" fill="#6B7280" />
+            <marker id="arrowGray" markerWidth="14" markerHeight="10" refX="13" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+              <polygon points="0 0, 14 5, 0 10" fill="#6B7280" />
             </marker>
             
             {/* Glow filters */}

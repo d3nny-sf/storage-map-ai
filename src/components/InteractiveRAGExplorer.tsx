@@ -638,14 +638,14 @@ export default function InteractiveRAGExplorer() {
                 <stop offset="0%" stopColor="#1E3A5F" />
                 <stop offset="100%" stopColor="#2563EB" />
               </linearGradient>
-              <marker id="ragArrowPrimary" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                <polygon points="0 0, 10 3.5, 0 7" fill="#C72C48" />
+              <marker id="ragArrowPrimary" markerWidth="14" markerHeight="10" refX="13" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                <polygon points="0 0, 14 5, 0 10" fill="#C72C48" />
               </marker>
-              <marker id="ragArrowAmber" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                <polygon points="0 0, 10 3.5, 0 7" fill="#F59E0B" />
+              <marker id="ragArrowAmber" markerWidth="14" markerHeight="10" refX="13" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                <polygon points="0 0, 14 5, 0 10" fill="#F59E0B" />
               </marker>
-              <marker id="ragArrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                <polygon points="0 0, 10 3.5, 0 7" fill="#10B981" />
+              <marker id="ragArrowGreen" markerWidth="14" markerHeight="10" refX="13" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                <polygon points="0 0, 14 5, 0 10" fill="#10B981" />
               </marker>
               <filter id="ragGlow">
                 <feGaussianBlur stdDeviation="3" result="coloredBlur" />
