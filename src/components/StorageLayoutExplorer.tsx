@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 
 // ============================================================================
 // SOFTWARE STACK LOGOS (Text-based for now - can swap to images)
@@ -94,30 +94,30 @@ const storageTiers: StorageTier[] = [
     components: [
       {
         id: 'spark-shuffle',
-        name: 'Spark Shuffle',
-        shortName: 'Shuffle',
+        name: 'Spark Shuffle Spill',
+        shortName: 'Spark Shuffle Spill',
         tier: 0,
-        description: 'Ephemeral shuffle data during Spark jobs',
-        storageUse: 'Temporary spill space for shuffle operations',
+        description: 'Ephemeral shuffle data written to local NVMe during Spark jobs',
+        storageUse: 'Temporary spill space for shuffle operations — not durable',
         ioPattern: 'Random R/W, ephemeral, high IOPS',
       },
       {
         id: 'weaviate-hnsw',
         name: 'Weaviate HNSW Index',
-        shortName: 'Weaviate',
+        shortName: 'Weaviate HNSW Index',
         tier: 0,
-        description: 'Vector similarity index requiring sub-500μs lookups',
-        storageUse: 'HNSW graph traversal needs random access',
-        ioPattern: 'Random reads, memory-mapped',
+        description: 'In-memory vector graph requiring sub-500μs nearest-neighbor lookups',
+        storageUse: 'HNSW graph traversal via memory-mapped NVMe',
+        ioPattern: 'Random reads, memory-mapped, latency-critical',
       },
       {
         id: 'vllm-cache',
-        name: 'vLLM Model Cache',
-        shortName: 'vLLM',
+        name: 'vLLM KV Cache',
+        shortName: 'vLLM KV Cache',
         tier: 0,
-        description: 'Model weights + KV cache in GPU memory',
-        storageUse: 'Weights loaded via GDS, KV cache in VRAM',
-        ioPattern: 'Bulk load → VRAM resident',
+        description: 'Model weights loaded via GDS + KV cache pinned in GPU VRAM',
+        storageUse: 'Bulk weight load via cuFile, then VRAM-resident KV cache',
+        ioPattern: 'One-time bulk load → persistent VRAM residency',
       },
     ],
     details: [
@@ -144,38 +144,38 @@ const storageTiers: StorageTier[] = [
       {
         id: 'pytorch-dataloader',
         name: 'PyTorch DataLoader',
-        shortName: 'DataLoader',
+        shortName: 'PyTorch DataLoader',
         tier: 1,
-        description: 'Streaming training data to GPUs',
-        storageUse: 'Sequential reads with prefetch buffers',
-        ioPattern: '325 GiB/s aggregate throughput',
+        description: 'Streaming tokenized shards to GPUs via S3 with prefetch buffers',
+        storageUse: 'Sequential reads with multi-worker prefetch',
+        ioPattern: '325 GiB/s aggregate read throughput',
       },
       {
         id: 'kubeflow-artifacts',
-        name: 'Kubeflow Pipelines',
-        shortName: 'Kubeflow',
+        name: 'Kubeflow Pipeline Artifacts',
+        shortName: 'Kubeflow Pipeline Artifacts',
         tier: 1,
-        description: 'Pipeline intermediate artifacts',
-        storageUse: 'Step outputs, workflow state',
-        ioPattern: 'Mixed R/W, workflow-driven',
+        description: 'Intermediate outputs between pipeline steps (models, metrics, datasets)',
+        storageUse: 'Step outputs, workflow state, inter-stage data',
+        ioPattern: 'Mixed R/W, workflow-driven, ephemeral',
       },
       {
         id: 'mlflow-active',
-        name: 'MLflow Registry (Active)',
-        shortName: 'MLflow',
+        name: 'MLflow Model Registry',
+        shortName: 'MLflow Model Registry',
         tier: 1,
-        description: 'Models ready for deployment NOW',
-        storageUse: 'Active model versions, fast retrieval',
-        ioPattern: 'Read-heavy, low latency required',
+        description: 'Active model versions staged for deployment — fast retrieval required',
+        storageUse: 'Production model binaries, version metadata',
+        ioPattern: 'Read-heavy, low-latency serving path',
       },
       {
         id: 'ray-objects',
         name: 'Ray Object Store',
-        shortName: 'Ray',
+        shortName: 'Ray Object Store',
         tier: 1,
-        description: 'Distributed object references',
-        storageUse: 'Shared objects across Ray workers',
-        ioPattern: 'Random R/W, distributed',
+        description: 'Distributed shared objects across Ray workers for parallel compute',
+        storageUse: 'Shared tensors, intermediate results across workers',
+        ioPattern: 'Random R/W, distributed, latency-sensitive',
       },
     ],
     details: [
@@ -202,38 +202,38 @@ const storageTiers: StorageTier[] = [
       {
         id: 'checkpoints',
         name: 'Training Checkpoints',
-        shortName: 'Checkpoints',
+        shortName: 'Training Checkpoints',
         tier: 2,
-        description: 'Model state for disaster recovery',
-        storageUse: '500GB-1TB per checkpoint (70B model)',
-        ioPattern: 'Bursty sequential writes',
+        description: 'Full model state saved for disaster recovery — 500 GB to 1 TB per save (70B model)',
+        storageUse: 'Periodic full-state snapshots during training runs',
+        ioPattern: 'Bursty sequential writes, 50-100 GB/s peak',
       },
       {
         id: 'medallion',
-        name: 'Medallion Architecture',
-        shortName: 'B/S/G',
+        name: 'Medallion Architecture (Bronze/Silver/Gold)',
+        shortName: 'Medallion (Bronze/Silver/Gold)',
         tier: 2,
-        description: 'Bronze → Silver → Gold data refinement',
-        storageUse: 'Lakehouse data lifecycle',
-        ioPattern: 'ELT batch processing',
+        description: 'Lakehouse data lifecycle: raw ingest → cleaned/deduped → tokenized/sharded',
+        storageUse: 'Each layer is a full read-write cycle through object storage',
+        ioPattern: 'ELT batch processing, TB-scale per job',
       },
       {
         id: 'feast-features',
         name: 'Feast Feature Store',
-        shortName: 'Feast',
+        shortName: 'Feast Feature Store',
         tier: 2,
-        description: 'Offline feature snapshots',
-        storageUse: 'Parquet/ORC historical features',
-        ioPattern: 'Bulk reads for training',
+        description: 'Offline feature snapshots in Parquet/ORC for reproducible training',
+        storageUse: 'Historical feature tables, point-in-time joins',
+        ioPattern: 'Bulk columnar reads for training pipelines',
       },
       {
         id: 's3-tables',
         name: 'S3 Tables (Iceberg/Delta)',
-        shortName: 'Iceberg',
+        shortName: 'S3 Tables (Iceberg/Delta)',
         tier: 2,
-        description: 'ACID transactions, time travel, schema evolution',
-        storageUse: 'Lakehouse table format',
-        ioPattern: 'Structured reads/writes',
+        description: 'ACID transactions, time travel, schema evolution — the Lakehouse table format',
+        storageUse: 'Structured data with transactional guarantees',
+        ioPattern: 'Columnar reads/writes, partition pruning',
       },
     ],
     details: [
@@ -260,29 +260,29 @@ const storageTiers: StorageTier[] = [
       {
         id: 'trustyai-logs',
         name: 'TrustyAI Audit Logs',
-        shortName: 'Audit',
+        shortName: 'TrustyAI Audit Logs',
         tier: 3,
-        description: 'Model lineage and decision auditing',
-        storageUse: 'Immutable compliance logs',
-        ioPattern: 'Write-once, read-rarely',
+        description: 'Immutable model lineage and decision audit trail — WORM-protected',
+        storageUse: 'Write-once compliance logs with Object Lock',
+        ioPattern: 'Write-once, read on audit/investigation',
       },
       {
         id: 'model-archives',
-        name: 'Model Archives',
-        shortName: 'Archives',
+        name: 'Model Version Archive',
+        shortName: 'Model Version Archive',
         tier: 3,
-        description: 'Retired model versions for compliance',
-        storageUse: 'Long-term model retention',
-        ioPattern: 'ILM tiered from Tier 2',
+        description: 'Retired model versions retained for regulatory compliance',
+        storageUse: 'Long-term immutable model retention via ILM from Tier 2',
+        ioPattern: 'Auto-tiered from Tier 2, rarely retrieved',
       },
       {
         id: 'historical-data',
         name: 'Historical Training Data',
-        shortName: 'Historical',
+        shortName: 'Historical Training Data',
         tier: 3,
-        description: 'Original datasets for reproducibility',
-        storageUse: 'Legal/compliance retention',
-        ioPattern: 'Archive, rarely accessed',
+        description: 'Original training datasets preserved for reproducibility and legal holds',
+        storageUse: 'Legal/compliance retention, SEC 17a-4(f)',
+        ioPattern: 'Archive, retrieved for audits or retraining',
       },
     ],
     details: [
@@ -314,8 +314,16 @@ const dataFlows: DataFlowPath[] = [
 export default function StorageLayoutExplorer() {
   const [selectedTier, setSelectedTier] = useState<StorageTier | null>(null)
   const [selectedComponent, setSelectedComponent] = useState<ComponentInfo | null>(null)
-  const [isPlaying, setIsPlaying] = useState(true)
   const [showLakehouseInfo, setShowLakehouseInfo] = useState(false)
+  const [activeSoftware, setActiveSoftware] = useState<string | null>(null)
+
+  // Which tier numbers are highlighted by the active software pill
+  const highlightedTiers = useMemo<number[]>(() => {
+    if (!activeSoftware) return []
+    const sw = softwareStack.find(s => s.name === activeSoftware)
+    if (!sw) return []
+    return Array.isArray(sw.tier) ? sw.tier : [sw.tier]
+  }, [activeSoftware])
 
   const handleTierClick = useCallback((tier: StorageTier) => {
     setSelectedTier(tier)
@@ -330,6 +338,10 @@ export default function StorageLayoutExplorer() {
   const handleClose = useCallback(() => {
     setSelectedTier(null)
     setSelectedComponent(null)
+  }, [])
+
+  const handleSoftwareClick = useCallback((name: string) => {
+    setActiveSoftware(prev => prev === name ? null : name)
   }, [])
 
   return (
@@ -353,22 +365,6 @@ export default function StorageLayoutExplorer() {
             >
               Data Lake vs Lakehouse?
             </button>
-            <button
-              onClick={() => setIsPlaying(!isPlaying)}
-              className={`p-2 rounded-lg transition-colors ${
-                isPlaying ? 'bg-raspberry text-white' : 'bg-gray-700 text-gray-300'
-              }`}
-            >
-              {isPlaying ? (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              )}
-            </button>
           </div>
         </div>
       </div>
@@ -377,25 +373,53 @@ export default function StorageLayoutExplorer() {
       <div className="px-6 py-4 border-b border-white/10 bg-gray-800/30">
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Application Layer</span>
-          <span className="text-[10px] text-gray-500">Software → Storage Tier Mapping</span>
+          <span className="text-[10px] text-gray-500">
+            {activeSoftware
+              ? <>
+                  <span className="text-white font-semibold">{activeSoftware}</span>
+                  {' '}uses Tier {highlightedTiers.join(' & ')}
+                  <button onClick={() => setActiveSoftware(null)} className="ml-2 text-gray-400 hover:text-white">✕</button>
+                </>
+              : 'Click any app to see which tiers it uses'
+            }
+          </span>
         </div>
         <div className="flex flex-wrap gap-2">
           {softwareStack.map((sw) => {
             const tierArr = Array.isArray(sw.tier) ? sw.tier : [sw.tier]
+            const isActive = activeSoftware === sw.name
+            const tierColors = tierArr.map(t => storageTiers.find(st => st.tier === t)?.color || '#fff')
             return (
-              <div
+              <button
                 key={sw.name}
-                className="group relative px-3 py-1.5 rounded-lg bg-gray-800/50 border border-white/10 hover:border-white/30 transition-all cursor-help"
+                onClick={() => handleSoftwareClick(sw.name)}
+                className={`relative px-3 py-2 rounded-lg transition-all cursor-pointer ${
+                  isActive
+                    ? 'scale-105 shadow-lg'
+                    : activeSoftware
+                      ? 'opacity-40 hover:opacity-70'
+                      : 'hover:border-white/40 hover:scale-105'
+                } border ${
+                  isActive ? 'border-white/50 bg-gray-700/80' : 'border-white/10 bg-gray-800/50'
+                }`}
+                style={isActive ? { boxShadow: `0 0 12px ${tierColors[0]}40, 0 0 0 2px ${tierColors[0]}` } : undefined}
               >
-                <span className="text-xs font-medium text-white">{sw.name}</span>
-                <span className="ml-1.5 text-[10px] text-gray-500">
+                <span className={`text-xs font-semibold ${
+                  isActive ? 'text-white' : 'text-gray-200'
+                }`}>{sw.name}</span>
+                <span className="ml-1.5 text-[10px] font-medium" style={{
+                  color: isActive ? tierColors[0] : '#6b7280'
+                }}>
                   T{tierArr.join(',')}
                 </span>
-                {/* Tooltip */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 border border-white/20 rounded text-[10px] text-gray-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                  Uses Tier {tierArr.join(' & ')}
-                </div>
-              </div>
+                {isActive && (
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
+                    {tierArr.map(t => (
+                      <div key={t} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: storageTiers.find(st => st.tier === t)?.color }} />
+                    ))}
+                  </div>
+                )}
+              </button>
             )
           })}
         </div>
@@ -410,9 +434,10 @@ export default function StorageLayoutExplorer() {
               key={tier.id}
               tier={tier}
               isSelected={selectedTier?.id === tier.id}
+              isHighlighted={highlightedTiers.includes(tier.tier)}
+              isDimmed={highlightedTiers.length > 0 && !highlightedTiers.includes(tier.tier)}
               onClick={() => handleTierClick(tier)}
               onComponentClick={(comp) => handleComponentClick(comp, tier)}
-              isPlaying={isPlaying}
             />
           ))}
         </div>
@@ -518,25 +543,38 @@ export default function StorageLayoutExplorer() {
 interface TierCardProps {
   tier: StorageTier
   isSelected: boolean
+  isHighlighted: boolean
+  isDimmed: boolean
   onClick: () => void
   onComponentClick: (comp: ComponentInfo) => void
-  isPlaying: boolean
 }
 
-function TierCard({ tier, isSelected, onClick, onComponentClick, isPlaying }: TierCardProps) {
+function TierCard({ tier, isSelected, isHighlighted, isDimmed, onClick, onComponentClick }: TierCardProps) {
   return (
     <div
-      className={`relative rounded-xl border-2 transition-all cursor-pointer ${
+      className={`relative rounded-xl border-2 transition-all duration-300 cursor-pointer ${
         isSelected
           ? 'border-white/50 shadow-lg scale-[1.02]'
-          : 'border-white/10 hover:border-white/30'
+          : isHighlighted
+            ? 'border-white/40 shadow-lg scale-[1.02]'
+            : isDimmed
+              ? 'border-white/5 opacity-30 scale-[0.98]'
+              : 'border-white/10 hover:border-white/30'
       }`}
       style={{ 
-        background: `linear-gradient(135deg, ${tier.color}15 0%, transparent 100%)`,
-        borderColor: isSelected ? tier.color : undefined,
+        background: `linear-gradient(135deg, ${tier.color}${isHighlighted ? '25' : '15'} 0%, transparent 100%)`,
+        borderColor: isSelected ? tier.color : isHighlighted ? `${tier.color}90` : undefined,
+        boxShadow: isHighlighted ? `0 0 20px ${tier.color}30` : undefined,
       }}
       onClick={onClick}
     >
+      {/* Highlight glow ring when software pill targets this tier */}
+      {isHighlighted && (
+        <div
+          className="absolute -inset-1 rounded-xl opacity-25 animate-pulse pointer-events-none"
+          style={{ backgroundColor: tier.color }}
+        />
+      )}
       {/* Header - More breathing room */}
       <div className="p-4 lg:p-5 border-b border-white/10">
         <div className="flex items-center justify-between mb-3">
@@ -573,7 +611,7 @@ function TierCard({ tier, isSelected, onClick, onComponentClick, isPlaying }: Ti
         </div>
       </div>
 
-      {/* Components - More padding */}
+      {/* Components */}
       <div className="p-4 space-y-2">
         {tier.components.map((comp) => (
           <button
@@ -584,9 +622,9 @@ function TierCard({ tier, isSelected, onClick, onComponentClick, isPlaying }: Ti
             }}
             className="w-full text-left px-3 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-white font-medium">{comp.shortName}</span>
-              <svg className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm text-white font-medium leading-snug">{comp.shortName}</span>
+              <svg className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
@@ -594,14 +632,6 @@ function TierCard({ tier, isSelected, onClick, onComponentClick, isPlaying }: Ti
           </button>
         ))}
       </div>
-
-      {/* Animated pulse for active tier */}
-      {isPlaying && tier.isMinIO && (
-        <div
-          className="absolute -inset-1 rounded-xl opacity-20 animate-pulse"
-          style={{ backgroundColor: tier.color }}
-        />
-      )}
     </div>
   )
 }
