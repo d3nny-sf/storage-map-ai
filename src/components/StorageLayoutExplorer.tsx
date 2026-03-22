@@ -127,19 +127,19 @@ const storageTiers: StorageTier[] = [
       'Ephemeral - not durable storage',
       'PVCs for StatefulSets (Weaviate)',
       'PCIe 5/6 direct to Rubin VRAM',
-      'KV cache hot pages; cold pages overflow to CMX G3.5',
+      'KV cache hot pages; cold pages overflow to NVIDIA CMX G3.5',
     ],
   },
   {
     id: 'tier-g35',
     tier: 0.5 as unknown as number,
-    name: 'CMX Context Memory (G3.5)',
+    name: 'NVIDIA CMX™ Context Memory (G3.5)',
     subtitle: 'BlueField-4 NVMe — Ethernet-attached Flash (800 GbE)',
     capacity: 'PBs per GPU Pod',
     latency: '<500μs (RDMA)',
     isMinIO: true,
     color: '#0891B2', // Teal/Cyan
-    description: 'NVIDIA CMX — the KV-cache overflow tier for agentic and long-context inference. MinIO AIStor runs natively on BlueField-4 within the STX rack, providing S3-compatible context-memory storage via Spectrum-X 800 GbE RDMA.',
+    description: 'NVIDIA CMX™ — the KV-cache overflow tier for agentic and long-context inference. MinIO AIStor runs natively on BlueField-4 within the STX rack, providing S3-compatible context-memory storage via Spectrum-X 800 GbE RDMA.',
     accessMethod: 'RDMA via NIXL / Dynamo / Grove over Spectrum-X 800 GbE',
     components: [
       {
@@ -166,7 +166,7 @@ const storageTiers: StorageTier[] = [
         shortName: 'NIXL / Grove Orchestration',
         tier: 0.5 as unknown as number,
         description: 'NVIDIA Dynamo runtime with NIXL transfer library and Grove distributed KV cache manager',
-        storageUse: 'Orchestration layer mapping KV pages across VRAM ↔ CMX ↔ AIStor tiers',
+        storageUse: 'Orchestration layer mapping KV pages across VRAM ↔ NVIDIA CMX ↔ AIStor tiers',
         ioPattern: 'Control plane: metadata lookups; data plane: zero-copy RDMA transfers',
       },
     ],
@@ -411,7 +411,7 @@ export default function StorageLayoutExplorer() {
             <h3 className="text-xl font-bold text-white flex items-center gap-3">
               <span className="w-3 h-3 rounded-full bg-raspberry animate-pulse" />
               AI Storage Layout
-              <span className="text-sm font-normal text-gray-400">— The 5-Tier Architecture (incl. CMX G3.5)</span>
+              <span className="text-sm font-normal text-gray-400">— The 5-Tier Architecture (incl. NVIDIA CMX G3.5)</span>
             </h3>
             <p className="text-sm text-gray-400 mt-1">Click any tier or component to explore details</p>
           </div>
@@ -549,9 +549,9 @@ export default function StorageLayoutExplorer() {
               </svg>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-teal-400 mb-1">NEW: CMX G3.5 — Storage Enters the Inference Loop</h4>
+              <h4 className="text-sm font-semibold text-teal-400 mb-1">NEW: NVIDIA CMX™ G3.5 — Storage Enters the Inference Loop</h4>
               <p className="text-sm text-gray-400">
-                <strong className="text-white">NVIDIA CMX introduces a new G3.5 tier</strong> between GPU HBM and enterprise storage. 
+                <strong className="text-white">NVIDIA CMX™ introduces a new G3.5 tier</strong> between GPU HBM and enterprise storage. 
                 MinIO AIStor runs natively on BlueField-4 within the STX rack, providing KV-cache overflow for agentic and long-context 
                 inference at sub-millisecond latency over Spectrum-X 800 GbE RDMA. Up to 5× tokens-per-second vs KV eviction.
               </p>
@@ -570,7 +570,7 @@ export default function StorageLayoutExplorer() {
               <h4 className="text-sm font-semibold text-emerald-400 mb-1">The Tier Hierarchy</h4>
               <p className="text-sm text-gray-400">
                 <strong className="text-white">Tier 0 is NOT MinIO AIStor.</strong> It's raw block I/O — NVMe direct to GPU via GDS. 
-                <strong className="text-teal-400">CMX G3.5 is the new flash tier</strong> where MinIO AIStor runs on BlueField-4 for KV-cache overflow. 
+                <strong className="text-teal-400">NVIDIA CMX G3.5 is the new flash tier</strong> where MinIO AIStor runs on BlueField-4 for KV-cache overflow. 
                 MinIO AIStor then spans Tier 1 (hot S3), Tier 2 (capacity/lakehouse), and Tier 3 (compliance archive).
               </p>
             </div>
@@ -601,7 +601,7 @@ export default function StorageLayoutExplorer() {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded" style={{ backgroundColor: '#0891B2' }} />
-            <span className="text-gray-400">G3.5: CMX Context Memory (MinIO AIStor on BF-4)</span>
+            <span className="text-gray-400">G3.5: NVIDIA CMX Context Memory (MinIO AIStor on BF-4)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded bg-raspberry" />

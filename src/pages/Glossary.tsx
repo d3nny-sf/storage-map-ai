@@ -202,21 +202,21 @@ const glossaryTerms: GlossaryTerm[] = [
   // =========================================================================
   {
     term: 'BlueField-4 SuperNIC',
-    definition: 'NVIDIA\'s 4th-generation DPU (Data Processing Unit) announced at GTC 2026. Embedded in every STX rack tray. Offloads networking, security, and storage acceleration — including CMX KV-cache overflow via RDMA.',
-    context: 'BlueField-4 hosts MinIO AIStor on its local NVMe, providing the CMX G3.5 tier for KV-cache overflow. Combined with Spectrum-X 800 GbE and ConnectX-9, it delivers sub-ms RDMA for inference workloads.',
-    relatedTerms: ['STX Rack', 'CMX (Context Memory Extension)', 'Spectrum-X 800 GbE', 'ConnectX-9'],
+    definition: 'NVIDIA\'s 4th-generation DPU (Data Processing Unit) announced at GTC 2026. Embedded in every STX rack tray. Offloads networking, security, and storage acceleration — including NVIDIA CMX™ KV-cache overflow via RDMA.',
+    context: 'BlueField-4 hosts MinIO AIStor on its local NVMe, providing the NVIDIA CMX G3.5 tier for KV-cache overflow. Combined with Spectrum-X 800 GbE and ConnectX-9, it delivers sub-ms RDMA for inference workloads.',
+    relatedTerms: ['STX Rack', 'NVIDIA CMX™ (Context Memory Extension)', 'Spectrum-X 800 GbE', 'ConnectX-9'],
     category: 'storage',
   },
   {
-    term: 'CMX (Context Memory Extension)',
-    definition: 'NVIDIA technology (GTC 2026) that extends GPU VRAM by spilling KV-cache state to external NVMe over RDMA. MinIO AIStor on BlueField-4 NVMe is the designated overflow target. Bidirectional spill/refill at sub-ms latency.',
+    term: 'NVIDIA CMX™ (Context Memory Extension)',
+    definition: 'NVIDIA CMX™ is NVIDIA\'s first implementation of the STX architecture (GTC 2026) — a context memory storage platform that extends GPU VRAM by spilling KV-cache state to external NVMe over RDMA. MinIO AIStor on BlueField-4 NVMe is the designated overflow target. Bidirectional spill/refill at sub-ms latency.',
     context: '5× tokens/sec, 5× power efficiency vs KV eviction/recompute. Enables long-context (millions of tokens) and multi-turn agentic inference without discarding context. This creates the new Tier G3.5.',
     relatedTerms: ['KV Cache', 'Tier G3.5', 'BlueField-4 SuperNIC', 'MinIO AIStor'],
     category: 'storage',
   },
   {
     term: 'ConnectX-9',
-    definition: 'NVIDIA\'s latest network adapter, successor to ConnectX-7. Supports 800 GbE with hardware RDMA offload, enabling the sub-ms latency required for CMX KV-cache overflow and GPU-to-GPU gradient sync.',
+    definition: 'NVIDIA\'s latest network adapter, successor to ConnectX-7. Supports 800 GbE with hardware RDMA offload, enabling the sub-ms latency required for NVIDIA CMX KV-cache overflow and GPU-to-GPU gradient sync.',
     context: 'Deployed in the STX rack alongside BlueField-4. Doubles bandwidth from CX-7 (400 GbE). Essential for keeping inference and training interconnects ahead of model scale.',
     relatedTerms: ['Spectrum-X 800 GbE', 'RDMA', 'STX Rack'],
     category: 'storage',
@@ -279,9 +279,9 @@ const glossaryTerms: GlossaryTerm[] = [
   },
   {
     term: 'Dynamo (NVIDIA)',
-    definition: 'NVIDIA\'s inference orchestration framework (GTC 2026). Coordinates request routing, KV-cache placement, and model-replica scaling across GPU fleets. Works with NIXL for zero-copy transfers and CMX for KV overflow.',
-    context: 'Dynamo decides WHEN to spill KV cache to CMX G3.5, WHICH replica serves a request, and WHERE to route multi-turn context. MinIO AIStor is the durable backing store for all persisted inference state.',
-    relatedTerms: ['NIXL', 'CMX (Context Memory Extension)', 'vLLM', 'Inference'],
+    definition: 'NVIDIA\'s inference orchestration framework (GTC 2026). Coordinates request routing, KV-cache placement, and model-replica scaling across GPU fleets. Works with NIXL for zero-copy transfers and NVIDIA CMX for KV overflow.',
+    context: 'Dynamo decides WHEN to spill KV cache to NVIDIA CMX G3.5, WHICH replica serves a request, and WHERE to route multi-turn context. MinIO AIStor is the durable backing store for all persisted inference state.',
+    relatedTerms: ['NIXL', 'NVIDIA CMX™ (Context Memory Extension)', 'vLLM', 'Inference'],
     category: 'storage',
   },
   {
@@ -294,22 +294,22 @@ const glossaryTerms: GlossaryTerm[] = [
   {
     term: 'Grove (NVIDIA)',
     definition: 'NVIDIA\'s open-source hierarchical KV-cache management library (GTC 2026). Implements prefix-aware caching, multi-tier eviction, and semantic reuse of cached context across requests.',
-    context: 'Grove manages what stays in VRAM vs. what spills to CMX G3.5. Works with Dynamo for cross-replica cache sharing. MinIO AIStor on BF-4 is the persistence layer for evicted KV state.',
-    relatedTerms: ['KV Cache', 'CMX (Context Memory Extension)', 'Dynamo (NVIDIA)'],
+    context: 'Grove manages what stays in VRAM vs. what spills to NVIDIA CMX G3.5. Works with Dynamo for cross-replica cache sharing. MinIO AIStor on BF-4 is the persistence layer for evicted KV state.',
+    relatedTerms: ['KV Cache', 'NVIDIA CMX™ (Context Memory Extension)', 'Dynamo (NVIDIA)'],
     category: 'storage',
   },
   {
     term: 'NIXL',
     definition: 'NVIDIA Inference Transfer Library — a low-level, zero-copy data movement library for inference workloads (GTC 2026). Provides direct GPU-to-GPU and GPU-to-storage transfers without CPU involvement.',
-    context: 'NIXL is the plumbing underneath Dynamo and CMX. It handles the actual RDMA transfers when KV cache spills to MinIO AIStor on BF-4 NVMe, ensuring sub-ms latency.',
-    relatedTerms: ['Dynamo (NVIDIA)', 'CMX (Context Memory Extension)', 'GPUDirect RDMA for S3'],
+    context: 'NIXL is the plumbing underneath Dynamo and NVIDIA CMX. It handles the actual RDMA transfers when KV cache spills to MinIO AIStor on BF-4 NVMe, ensuring sub-ms latency.',
+    relatedTerms: ['Dynamo (NVIDIA)', 'NVIDIA CMX™ (Context Memory Extension)', 'GPUDirect RDMA for S3'],
     category: 'storage',
   },
   {
     term: 'Spectrum-X 800 GbE',
     definition: 'NVIDIA\'s latest Ethernet networking platform, doubling bandwidth from the previous 400 GbE generation. Includes ConnectX-9 adapters and Spectrum-4 switches optimized for AI workloads with lossless RDMA.',
-    context: 'The networking backbone of the STX rack. Provides the bandwidth for CMX KV-cache overflow, GPU-to-GPU gradient sync, and MinIO AIStor data-plane traffic — all at sub-ms latency over RoCE v2.',
-    relatedTerms: ['ConnectX-9', 'RDMA', 'STX Rack', 'CMX (Context Memory Extension)'],
+    context: 'The networking backbone of the STX rack. Provides the bandwidth for NVIDIA CMX KV-cache overflow, GPU-to-GPU gradient sync, and MinIO AIStor data-plane traffic — all at sub-ms latency over RoCE v2.',
+    relatedTerms: ['ConnectX-9', 'RDMA', 'STX Rack', 'NVIDIA CMX™ (Context Memory Extension)'],
     category: 'storage',
   },
   {
@@ -320,17 +320,17 @@ const glossaryTerms: GlossaryTerm[] = [
     category: 'storage',
   },
   {
-    term: 'Tier G3.5 (CMX KV-Cache Overflow)',
+    term: 'Tier G3.5 (NVIDIA CMX KV-Cache Overflow)',
     definition: 'The new storage tier between Tier 0 (raw NVMe block) and Tier 1 (hot S3). MinIO AIStor running on BlueField-4 NVMe inside the STX rack, accessed via GPUDirect RDMA at sub-ms latency.',
-    context: 'Introduced with NVIDIA CMX at GTC 2026. KV cache overflows from VRAM to this tier when context length exceeds GPU memory. MinIO AIStor powers this tier on BF-4 NVMe. 5× tokens/sec, 5× power efficiency vs eviction. THIS is MinIO AIStor in the inference hot path.',
-    relatedTerms: ['CMX (Context Memory Extension)', 'BlueField-4 SuperNIC', 'MinIO AIStor', 'KV Cache'],
+    context: 'Introduced with NVIDIA CMX™ at GTC 2026. KV cache overflows from VRAM to this tier when context length exceeds GPU memory. MinIO AIStor powers this tier on BF-4 NVMe. 5× tokens/sec, 5× power efficiency vs eviction. THIS is MinIO AIStor in the inference hot path.',
+    relatedTerms: ['NVIDIA CMX™ (Context Memory Extension)', 'BlueField-4 SuperNIC', 'MinIO AIStor', 'KV Cache'],
     category: 'storage',
   },
   {
     term: 'Vera Rubin (NVIDIA GPU)',
-    definition: 'NVIDIA\'s next-generation GPU architecture announced at GTC 2026, succeeding Blackwell. Rubin Ultra is the top SKU. Features next-gen HBM, improved FP4/FP6 compute, and deeper CMX integration.',
+    definition: 'NVIDIA\'s next-generation GPU architecture announced at GTC 2026, succeeding Blackwell. Rubin Ultra is the top SKU. Features next-gen HBM, improved FP4/FP6 compute, and deeper NVIDIA CMX integration.',
     context: 'Vera Rubin replaces H200/Blackwell as the reference GPU in the prescriptive stack. Paired with BlueField-4, ConnectX-9, and Spectrum-X 800 GbE in the STX rack.',
-    relatedTerms: ['STX Rack', 'BlueField-4 SuperNIC', 'CMX (Context Memory Extension)'],
+    relatedTerms: ['STX Rack', 'BlueField-4 SuperNIC', 'NVIDIA CMX™ (Context Memory Extension)'],
     category: 'storage',
   },
 
@@ -440,7 +440,7 @@ const glossaryTerms: GlossaryTerm[] = [
 const myths = [
   {
     myth: '"Object storage is in the inference hot path"',
-    reality: 'For short-context inference, everything happens in GPU memory — the model is loaded, the KV cache lives in VRAM, and storage only touches model load + logging. HOWEVER, with NVIDIA CMX (GTC 2026), MinIO AIStor on BlueField-4 NVMe IS in the inference hot path as the KV-cache overflow tier — sub-ms RDMA, 5× tokens/sec vs eviction. This changes the equation for long-context and agentic workloads.',
+    reality: 'For short-context inference, everything happens in GPU memory — the model is loaded, the KV cache lives in VRAM, and storage only touches model load + logging. HOWEVER, with NVIDIA CMX™ (GTC 2026), MinIO AIStor on BlueField-4 NVMe IS in the inference hot path as the KV-cache overflow tier — sub-ms RDMA, 5× tokens/sec vs eviction. This changes the equation for long-context and agentic workloads.',
   },
   {
     myth: '"RAG is an inference workload"',
