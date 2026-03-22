@@ -195,7 +195,7 @@ const matrix: Record<Phase, Record<string, PhaseDetail>> = {
     },
     inference: {
       role: 'active-tier',
-      short: 'CMX G3.5 KV Overflow',
+      short: 'NVIDIA CMX G3.5 KV Overflow',
       detail: 'Short requests run entirely in GPU VRAM. For agentic and long-context workloads, KV cache pages overflow to NVIDIA CMX G3.5 — powered by MinIO AIStor running natively on BlueField-4 NVMe within the STX rack. Sub-ms RDMA via Spectrum-X 800 GbE. Up to 5× tokens/sec vs KV eviction.',
       tier: [0, 1] as Tier[],
       apps: ['vLLM', 'Triton', 'NIXL', 'Grove'],
@@ -203,7 +203,7 @@ const matrix: Record<Phase, Record<string, PhaseDetail>> = {
       ioProfile: 'Sub-ms random R/W via RDMA (long-context/agentic)',
       volume: 'GBs-TBs of KV state per session',
       minioFeature: 'MinIO AIStor on BlueField-4 — <200 MB binary, sub-ms KV overflow, 5× tokens/sec, 5× power efficiency vs eviction',
-      paperRef: 'NVIDIA CMX Developer Blog: G3.5 context memory tier; MinIO AIStor press release: "extends the CMX memory hierarchy"',
+      paperRef: 'NVIDIA CMX Developer Blog: G3.5 context memory tier; MinIO AIStor press release: "extends the NVIDIA CMX memory hierarchy"',
     },
   },
 
@@ -464,13 +464,13 @@ const workloadSummaries: WorkloadSummary[] = [
     color: 'text-cyan-600',
     bgColor: 'bg-cyan-600',
     borderColor: 'border-cyan-600',
-    intensity: 'Active Tier (CMX)',
+    intensity: 'Active Tier (NVIDIA CMX)',
     intensityPct: 55,
     nodeCount: 7,
-    description: 'Model serving. For agentic/long-context workloads, KV cache overflows to CMX G3.5 — storage IS in the inference loop.',
+    description: 'Model serving. For agentic/long-context workloads, KV cache overflows to NVIDIA CMX G3.5 — storage IS in the inference loop.',
     keyInsight: 'Short requests stay in VRAM. Agentic AI with million-token contexts overflows KV cache to NVIDIA CMX G3.5 — powered by MinIO AIStor on BlueField-4 at sub-ms RDMA. 5× tokens/sec vs eviction. Plus model loading, adapter swaps, logging, RLHF feedback.',
-    hotPath: 'Yes — CMX G3.5 for long-context/agentic',
-    peakThroughput: 'Sub-ms RDMA (CMX); 325 GiB/s model load',
+    hotPath: 'Yes — NVIDIA CMX G3.5 for long-context/agentic',
+    peakThroughput: 'Sub-ms RDMA (NVIDIA CMX); 325 GiB/s model load',
     dataScale: '16-140 GB model, GBs-TBs KV state',
   },
 ]
@@ -485,7 +485,7 @@ const roleConfig: Record<Role, { bg: string; text: string; label: string; dot: s
   'burst':       { bg: 'bg-gradient-to-r from-blue-500 to-blue-600',        text: 'text-white', label: 'Burst', dot: 'bg-blue-500' },
   'not-in-path': { bg: 'bg-gradient-to-r from-gray-300 to-gray-400',        text: 'text-white', label: 'Not In Path', dot: 'bg-gray-400' },
   'varies':      { bg: 'bg-gradient-to-r from-purple-500 to-purple-600',    text: 'text-white', label: 'Varies', dot: 'bg-purple-500' },
-  'active-tier': { bg: 'bg-gradient-to-r from-teal-500 to-cyan-600',        text: 'text-white', label: 'Active Tier (CMX)', dot: 'bg-cyan-500' },
+  'active-tier': { bg: 'bg-gradient-to-r from-teal-500 to-cyan-600',        text: 'text-white', label: 'Active Tier (NVIDIA CMX)', dot: 'bg-cyan-500' },
 }
 
 const tierColors: Record<number, { bg: string; text: string; label: string }> = {
@@ -995,7 +995,7 @@ export default function Compare() {
                 {[
                   { label: 'Training', sub: 'Build the base model', color: 'from-raspberry to-raspberry-dark', arrow: true },
                   { label: 'Fine-Tuning', sub: 'Adapt with LoRA', color: 'from-blue-500 to-blue-600', arrow: true },
-                  { label: 'Inference', sub: 'Serve + CMX KV overflow', color: 'from-teal-500 to-cyan-600', arrow: true },
+                  { label: 'Inference', sub: 'Serve + NVIDIA CMX KV overflow', color: 'from-teal-500 to-cyan-600', arrow: true },
                   { label: 'RAG', sub: 'Augment with external data', color: 'from-amber-500 to-orange-500', arrow: false },
                 ].map((step, i) => (
                   <div key={step.label} className="relative">
@@ -1073,8 +1073,8 @@ export default function Compare() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { feature: 'MinIO Cache', desc: 'Distributed shared DRAM cache for ultra-high-performance reads. Prevents GPU starvation during DataLoader streaming.', phases: ['Active Compute Loop', 'Model Registry'], icon: '⚡' },
-              { feature: 'CMX G3.5 / BF-4 Native', desc: 'MinIO AIStor runs natively on NVIDIA BlueField-4 within the STX rack — <200 MB binary, ARM/SVE2 optimized. Provides KV-cache overflow for agentic inference at sub-ms RDMA. 5× tokens/sec, 5× power efficiency vs eviction.', phases: ['Inference (Active Compute Loop)', 'Agentic AI'], icon: '🧠' },
-              { feature: 'GPUDirect RDMA for S3', desc: 'Sub-millisecond S3 object access via GPUDirect RDMA. Zero-copy NVMe-to-GPU memory transfers. Hardware-accelerated erasure coding via SVE2 SIMD on BlueField-4.', phases: ['CMX G3.5', 'Model Loading'], icon: '🔗' },
+              { feature: 'NVIDIA CMX™ G3.5 / BF-4 Native', desc: 'MinIO AIStor runs natively on NVIDIA BlueField-4 within the STX rack — <200 MB binary, ARM/SVE2 optimized. Provides KV-cache overflow for agentic inference at sub-ms RDMA. 5× tokens/sec, 5× power efficiency vs eviction.', phases: ['Inference (Active Compute Loop)', 'Agentic AI'], icon: '🧠' },
+              { feature: 'GPUDirect RDMA for S3', desc: 'Sub-millisecond S3 object access via GPUDirect RDMA. Zero-copy NVMe-to-GPU memory transfers. Hardware-accelerated erasure coding via SVE2 SIMD on BlueField-4.', phases: ['NVIDIA CMX G3.5', 'Model Loading'], icon: '🔗' },
               { feature: 'MinIO Catalog', desc: 'GraphQL-based namespace and metadata search across billions of objects. Find any adapter, checkpoint, or dataset instantly.', phases: ['Model Registry', 'Experiment Tracking'], icon: '🔍' },
               { feature: 'MinIO Firewall', desc: 'S3-aware data-centric firewall handling TLS, load balancing, QoS. Secures the data path without sacrificing throughput.', phases: ['All network paths'], icon: '🛡' },
               { feature: 'Erasure Coding', desc: 'Per-object inline Reed-Solomon in assembly. 12-drive, 6-parity config tolerates up to 5 drive failures (~50% loss).', phases: ['Checkpointing', 'Data Ingestion'], icon: '🔒' },
@@ -1138,7 +1138,7 @@ export default function Compare() {
                       inference: 'Model load, adapter swaps',
                     },
                     {
-                      tier: 'G3.5' as unknown as number, label: 'CMX Context Memory (BF-4 NVMe)', spec: '<500μs, RDMA 800 GbE',
+                      tier: 'G3.5' as unknown as number, label: 'NVIDIA CMX Context Memory (BF-4 NVMe)', spec: '<500μs, RDMA 800 GbE',
                       minio: 'MinIO AIStor',
                       training: '—',
                       rag: '—',
@@ -1289,7 +1289,7 @@ export default function Compare() {
               },
               {
                 title: 'Inference: Active Tier for Agentic AI',
-                description: 'Short requests stay in VRAM. But for agentic and long-context workloads, KV cache pages overflow to CMX G3.5 — MinIO AIStor running natively on BlueField-4 within the NVIDIA STX rack at sub-ms RDMA via Spectrum-X 800 GbE. 5× tokens/sec vs KV eviction. Plus model loading (325 GiB/s burst), adapter swaps (MinIO Cache), logging (ILM), and RLHF feedback (Object Lock). Storage spans the full inference lifecycle.',
+                description: 'Short requests stay in VRAM. But for agentic and long-context workloads, KV cache pages overflow to NVIDIA CMX G3.5 — MinIO AIStor running natively on BlueField-4 within the NVIDIA STX rack at sub-ms RDMA via Spectrum-X 800 GbE. 5× tokens/sec vs KV eviction. Plus model loading (325 GiB/s burst), adapter swaps (MinIO Cache), logging (ILM), and RLHF feedback (Object Lock). Storage spans the full inference lifecycle.',
                 gradient: 'from-teal-500 to-cyan-600',
                 shadow: 'shadow-cyan-500/20',
               },
@@ -1312,7 +1312,7 @@ export default function Compare() {
         </section>
 
         <BottomLine>
-          Object storage is in every pipeline, at every phase, for every workload. With NVIDIA CMX G3.5,
+          Object storage is in every pipeline, at every phase, for every workload. With NVIDIA CMX™ G3.5,
           MinIO AIStor on BlueField-4 is now inside the inference loop itself — providing KV-cache overflow
           for agentic and long-context workloads at sub-ms RDMA via Spectrum-X 800 GbE (5× tokens/sec vs eviction).
           All benchmark numbers cross-referenced with the MinIO whitepaper:
