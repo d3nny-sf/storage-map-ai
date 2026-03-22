@@ -594,7 +594,7 @@ export default function InteractiveInferenceExplorer() {
                   const midY = (fromCy + toCy) / 2
                   const isVert = flow.direction === 'down' || flow.direction === 'up'
                   const labelX = isVert ? midX + 55 : midX
-                  const labelY = isVert ? midY : midY - 18
+                  const labelY = isVert ? fromCy + (toCy - fromCy) * 0.7 : midY - 18
                   const pillW = flow.label.length * 7 + 18
                   return (
                     <g className="pointer-events-none">
