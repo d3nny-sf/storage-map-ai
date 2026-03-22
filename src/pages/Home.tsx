@@ -50,7 +50,7 @@ const pipelines = [
     id: 'inference',
     title: 'Inference',
     subtitle: 'Model Serving',
-    description: 'Running trained models to generate predictions. For agentic and long-context workloads, MinIO AIStor on BlueField-4 powers the CMX G3.5 KV-cache overflow tier — storage is now inside the inference loop.',
+    description: 'Running trained models to generate predictions. For agentic and long-context workloads, MinIO AIStor on BlueField-4 powers the NVIDIA CMX™ G3.5 KV-cache overflow tier — storage is now inside the inference loop.',
     intensity: 'active',
     path: '/explorer?view=inference',
     icon: (
@@ -67,7 +67,7 @@ const intensityConfig: Record<string, { bg: string; text: string; label: string 
   critical: { bg: 'bg-gradient-to-r from-raspberry to-raspberry-dark', text: 'text-white', label: 'Critical Path' },
   high: { bg: 'bg-gradient-to-r from-amber-500 to-orange-500', text: 'text-white', label: 'High Involvement' },
   medium: { bg: 'bg-gradient-to-r from-blue-500 to-blue-600', text: 'text-white', label: 'Medium Involvement' },
-  active: { bg: 'bg-gradient-to-r from-teal-500 to-cyan-600', text: 'text-white', label: 'Active Tier (CMX)' },
+  active: { bg: 'bg-gradient-to-r from-teal-500 to-cyan-600', text: 'text-white', label: 'Active Tier (NVIDIA CMX)' },
 }
 
 export default function Home() {
@@ -204,7 +204,7 @@ export default function Home() {
           <h2 className="text-3xl lg:text-4xl font-bold mb-6">The Bottom Line</h2>
           <p className="text-xl text-gray-300 leading-relaxed mb-10 max-w-3xl mx-auto">
             Object storage is the gravitational center of the AI data lifecycle. It's in every pipeline, 
-            at every phase, for every workload — <span className="text-white font-medium">and with CMX G3.5, MinIO AIStor is now inside the inference loop itself</span>, 
+            at every phase, for every workload — <span className="text-white font-medium">and with NVIDIA CMX™ G3.5, MinIO AIStor is now inside the inference loop itself</span>, 
             powering KV-cache overflow for agentic and long-context workloads on NVIDIA's STX architecture.
           </p>
           <Link
