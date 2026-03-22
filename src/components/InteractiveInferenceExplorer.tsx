@@ -40,7 +40,7 @@ interface FlowPath {
 }
 
 // Inference Pipeline:
-// Model Registry → Model Loading → GPU Inference Loop (with CMX G3.5 KV overflow) → Logging → Feedback → (back to Fine-Tuning)
+// Model Registry → Model Loading → GPU Inference Loop (with NVIDIA CMX G3.5 KV overflow) → Logging → Feedback → (back to Fine-Tuning)
 //
 // Key insight: For agentic/long-context workloads, KV cache overflows GPU VRAM into
 // NVIDIA CMX G3.5 — BlueField-4 NVMe flash at sub-ms latency. MinIO AIStor runs
@@ -122,12 +122,12 @@ const nodes: NodeData[] = [
     height: 340,
     type: 'compute',
     role: 'active-tier',
-    description: 'The generation loop — prompt in, tokens out. Short requests run in VRAM; agentic/long-context workloads spill KV cache to CMX G3.5 (BlueField-4 NVMe).',
+    description: 'The generation loop — prompt in, tokens out. Short requests run in VRAM; agentic/long-context workloads spill KV cache to NVIDIA CMX G3.5 (BlueField-4 NVMe).',
     details: [
       'Model weights loaded into VRAM at startup (one-time)',
       'KV cache hot pages in GPU HBM (VRAM)',
-      'KV cache cold pages overflow to CMX G3.5 under memory pressure',
-      'CMX G3.5: BlueField-4 NVMe at sub-ms RDMA via Spectrum-X 800 GbE',
+      'KV cache cold pages overflow to NVIDIA CMX G3.5 under memory pressure',
+      'NVIDIA CMX G3.5: BlueField-4 NVMe at sub-ms RDMA via Spectrum-X 800 GbE',
       'NIXL + Grove orchestrate KV page movement across tiers',
       'Forward pass: attention + FFN layers = matrix math',
       'Up to 5× tokens/sec vs KV eviction for long-context workloads',
@@ -135,30 +135,30 @@ const nodes: NodeData[] = [
     ],
     s3Paths: [
       '# Short requests: KV stays in VRAM (no storage I/O)',
-      '# Long-context / agentic: KV spills to CMX G3.5',
+      '# Long-context / agentic: KV spills to NVIDIA CMX G3.5',
       '# MinIO AIStor on BlueField-4 serves KV overflow',
       '# NIXL zero-copy RDMA transfers',
     ],
     ioProfile: {
-      pattern: 'KV cache overflow to CMX G3.5 on long-context',
+      pattern: 'KV cache overflow to NVIDIA CMX G3.5 on long-context',
       volume: 'GBs-TBs of KV state per session',
       throughput: 'Sub-ms RDMA via Spectrum-X 800 GbE',
-      metric: 'Tokens/second (5× with CMX vs eviction)',
+      metric: 'Tokens/second (5× with NVIDIA CMX vs eviction)',
     },
     dataVolume: 'GB-TB',
     phase: 2,
   },
   {
     id: 'cmx-context-memory',
-    name: 'CMX Context Memory (G3.5)',
-    shortName: 'CMX G3.5',
+    name: 'NVIDIA CMX™ Context Memory (G3.5)',
+    shortName: 'NVIDIA CMX G3.5',
     x: 420,
     y: 470,
     width: 280,
     height: 140,
     type: 'cmx',
     role: 'active-tier',
-    description: 'NVIDIA CMX — BlueField-4 NVMe flash tier for KV-cache overflow. MinIO AIStor runs natively on BF-4, providing sub-ms context memory for agentic AI.',
+    description: 'NVIDIA CMX™ — BlueField-4 NVMe flash tier for KV-cache overflow. MinIO AIStor runs natively on BF-4, providing sub-ms context memory for agentic AI.',
     details: [
       'KV cache pages spill from VRAM when memory pressure exceeds threshold',
       'BlueField-4 DPU with NVMe flash — sub-500μs P99 latency',
@@ -315,7 +315,7 @@ const flowPaths: FlowPath[] = [
     dataVolume: 'heavy',
     direction: 'down',
     animated: true,
-    description: 'KV cache pages spill to CMX G3.5 (BlueField-4 NVMe) when VRAM pressure exceeds threshold — RDMA via Spectrum-X 800 GbE',
+    description: 'KV cache pages spill to NVIDIA CMX G3.5 (BlueField-4 NVMe) when VRAM pressure exceeds threshold — RDMA via Spectrum-X 800 GbE',
   },
   {
     id: 'engine-to-logging',
@@ -361,7 +361,7 @@ const flowPaths: FlowPath[] = [
 
 const phases = [
   { id: 1, name: 'Model Loading', description: 'Weights + adapters from S3 → GPU VRAM' },
-  { id: 2, name: 'Inference Loop + CMX', description: 'Generation with KV overflow to G3.5' },
+  { id: 2, name: 'Inference Loop + NVIDIA CMX', description: 'Generation with KV overflow to G3.5' },
   { id: 3, name: 'Logging & Feedback', description: 'Every request logged + user feedback stored' },
   { id: 4, name: 'Model Updates', description: 'A/B tests, canary rollouts, rollbacks' },
 ]
@@ -489,11 +489,11 @@ export default function InteractiveInferenceExplorer() {
           <pattern id="infGrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#374151" strokeWidth="0.5" opacity="0.3"/></pattern>
           <rect width="100%" height="100%" fill="url(#infGrid)" />
 
-          {/* THE KEY CALLOUT — CMX G3.5 active tier */}
+          {/* THE KEY CALLOUT — NVIDIA CMX G3.5 active tier */}
           <g>
             <rect x="420" y="650" width="280" height="55" rx="8" fill="#164E63" stroke="#22D3EE" strokeWidth="2" />
             <text x="560" y="675" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">
-              CMX G3.5: Storage IS in the inference loop
+              NVIDIA CMX G3.5: Storage IS in the inference loop
             </text>
             <text x="560" y="692" textAnchor="middle" fill="#22D3EE" fontSize="10">
               KV cache overflow to BlueField-4 NVMe — 5× tokens/sec
@@ -518,13 +518,13 @@ export default function InteractiveInferenceExplorer() {
                 <text x={gpuNode.x + 20} y={gpuNode.y + 24} textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">{gpuNode.phase}</text>
                 <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + 22} textAnchor="middle" fill="white" fontSize="13" fontWeight="600" dx="10">vLLM / Triton</text>
 
-                {/* CMX ACTIVE TIER banner */}
+                {/* NVIDIA CMX ACTIVE TIER banner */}
                 <rect x={gpuNode.x + 25} y={gpuNode.y + 40} width={gpuNode.width - 50} height="26" rx="6" fill="#0891B2" />
-                <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + 57} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">CMX G3.5 KV OVERFLOW ACTIVE</text>
+                <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + 57} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">NVIDIA CMX G3.5 KV OVERFLOW ACTIVE</text>
 
                 {/* GPU VRAM sub-box */}
                 <rect x={gpuNode.x + 15} y={gpuNode.y + 78} width={gpuNode.width - 30} height="130" rx="8" fill="#1F2937" stroke="#34D399" strokeWidth="1" />
-                <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + 97} textAnchor="middle" fill="#34D399" fontSize="11" fontWeight="600">GPU MEMORY (VRAM) + CMX G3.5</text>
+                <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + 97} textAnchor="middle" fill="#34D399" fontSize="11" fontWeight="600">GPU MEMORY (VRAM) + NVIDIA CMX G3.5</text>
 
                 {/* Components in GPU */}
                 <rect x={gpuNode.x + 25} y={gpuNode.y + 107} width={115} height="40" rx="4" fill="#374151" />
@@ -533,7 +533,7 @@ export default function InteractiveInferenceExplorer() {
 
                 <rect x={gpuNode.x + 150} y={gpuNode.y + 107} width={115} height="40" rx="4" fill="#374151" />
                 <text x={gpuNode.x + 207} y={gpuNode.y + 125} textAnchor="middle" fill="#9CA3AF" fontSize="9">KV Cache</text>
-                <text x={gpuNode.x + 207} y={gpuNode.y + 138} textAnchor="middle" fill="#22D3EE" fontSize="8">(VRAM + CMX overflow)</text>
+                <text x={gpuNode.x + 207} y={gpuNode.y + 138} textAnchor="middle" fill="#22D3EE" fontSize="8">(VRAM + NVIDIA CMX overflow)</text>
 
                 <rect x={gpuNode.x + 25} y={gpuNode.y + 155} width={240} height="30" rx="4" fill="#374151" />
                 <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + 174} textAnchor="middle" fill="#9CA3AF" fontSize="9">Compute: Attention + FFN + Sampling</text>
@@ -556,7 +556,7 @@ export default function InteractiveInferenceExplorer() {
 
                 {/* Role badge */}
                 <rect x={gpuNode.x + 10} y={gpuNode.y + gpuNode.height - 30} width={gpuNode.width - 20} height="22" rx="4" fill="#0891B2" opacity={0.9} />
-                <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + gpuNode.height - 14} textAnchor="middle" fill="white" fontSize="10" fontWeight="600">ACTIVE TIER — CMX G3.5 KV OVERFLOW</text>
+                <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + gpuNode.height - 14} textAnchor="middle" fill="white" fontSize="10" fontWeight="600">ACTIVE TIER — NVIDIA CMX G3.5 KV OVERFLOW</text>
 
                 {/* Click indicator */}
                 {hoveredNode === gpuNode.id && (
@@ -607,7 +607,7 @@ export default function InteractiveInferenceExplorer() {
             )
           })}
 
-          {/* Non-GPU Nodes (including CMX) */}
+          {/* Non-GPU Nodes (including NVIDIA CMX) */}
           {nodes.filter(n => n.id !== 'inference-engine').map(node => {
             const colors = roleColors[node.role]
             const isActive = node.phase <= currentPhase
@@ -624,7 +624,7 @@ export default function InteractiveInferenceExplorer() {
                 <text x={node.x + node.width / 2} y={node.y + 22} textAnchor="middle" fill="white" fontSize="13" fontWeight="600" dx="10">{node.shortName}</text>
                 <rect x={node.x + 10} y={node.y + node.height - 35} width={node.width - 20} height="22" rx="4" fill={colors.fill} opacity={0.9} />
                 <text x={node.x + node.width / 2} y={node.y + node.height - 19} textAnchor="middle" fill="white" fontSize="10" fontWeight="600" letterSpacing="0.05em">
-                  {node.role === 'burst' ? 'BURST READ' : node.role === 'active-tier' ? 'ACTIVE TIER (CMX)' : node.role.toUpperCase()}
+                  {node.role === 'burst' ? 'BURST READ' : node.role === 'active-tier' ? 'ACTIVE TIER (NVIDIA CMX)' : node.role.toUpperCase()}
                 </text>
                 <foreignObject x={node.x + 10} y={node.y + 36} width={node.width - 20} height={node.height - 80}>
                   <div className="text-[11px] text-gray-400 leading-snug overflow-hidden">{node.description.slice(0, 100)}...</div>
@@ -650,7 +650,7 @@ export default function InteractiveInferenceExplorer() {
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold mb-2 ${roleColors[selectedNode.role].bg} text-white`}>
-                    {selectedNode.role === 'not-in-path' ? 'COMPUTE ONLY' : selectedNode.role === 'burst' ? 'BURST READ' : selectedNode.role === 'active-tier' ? 'ACTIVE TIER (CMX G3.5)' : selectedNode.role.toUpperCase()}
+                    {selectedNode.role === 'not-in-path' ? 'COMPUTE ONLY' : selectedNode.role === 'burst' ? 'BURST READ' : selectedNode.role === 'active-tier' ? 'ACTIVE TIER (NVIDIA CMX G3.5)' : selectedNode.role.toUpperCase()}
                   </div>
                   <h3 className="text-xl font-bold text-white">{selectedNode.name}</h3>
                   <p className="text-sm text-gray-400 mt-1">{selectedNode.description}</p>
@@ -695,8 +695,8 @@ export default function InteractiveInferenceExplorer() {
         <div className="flex flex-wrap items-center justify-center gap-6">
           <div className="flex items-center gap-2"><div className="w-4 h-4 rounded bg-gradient-to-r from-blue-500 to-blue-600" /><span className="text-xs text-gray-400">Burst Read (Model Load)</span></div>
           <div className="flex items-center gap-2"><div className="w-4 h-4 rounded bg-gradient-to-r from-raspberry to-raspberry-dark" /><span className="text-xs text-gray-400">Primary Storage</span></div>
-          <div className="flex items-center gap-2"><div className="w-4 h-4 rounded bg-gradient-to-r from-teal-500 to-cyan-600" /><span className="text-xs text-gray-400">Active Tier (CMX G3.5)</span></div>
-          <div className="flex items-center gap-2 pl-4 border-l border-gray-700"><span className="text-xs text-cyan-400 font-semibold">Key:</span><span className="text-xs text-gray-400">KV cache overflows to CMX G3.5 on long-context / agentic workloads</span></div>
+          <div className="flex items-center gap-2"><div className="w-4 h-4 rounded bg-gradient-to-r from-teal-500 to-cyan-600" /><span className="text-xs text-gray-400">Active Tier (NVIDIA CMX G3.5)</span></div>
+          <div className="flex items-center gap-2 pl-4 border-l border-gray-700"><span className="text-xs text-cyan-400 font-semibold">Key:</span><span className="text-xs text-gray-400">KV cache overflows to NVIDIA CMX G3.5 on long-context / agentic workloads</span></div>
         </div>
       </div>
     </div>

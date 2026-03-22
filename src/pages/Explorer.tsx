@@ -464,7 +464,7 @@ export default function Explorer() {
                         <div className="mt-2 text-sm text-cyan-700 space-y-1">
                           <p>&rarr; Attention computation (KV cache in GPU HBM)</p>
                           <p>&rarr; FFN layers (matrix multiplications, GPU compute)</p>
-                          <p>&rarr; <span className="font-semibold text-cyan-900">If KV cache exceeds VRAM: pages spill to CMX G3.5 (BlueField-4 NVMe) via RDMA</span></p>
+                          <p>&rarr; <span className="font-semibold text-cyan-900">If KV cache exceeds VRAM: pages spill to NVIDIA CMX G3.5 (BlueField-4 NVMe) via RDMA</span></p>
                           <p>&rarr; Logits produced &rarr; sampling &rarr; output token</p>
                           <p>&rarr; <span className="font-semibold">Repeat autoregressively until stop condition</span></p>
                         </div>
@@ -473,7 +473,7 @@ export default function Explorer() {
                             SHORT REQUESTS: GPU VRAM ONLY
                           </span>
                           <span className="inline-flex items-center px-3 py-1 bg-cyan-600 text-white text-xs font-bold rounded">
-                            LONG-CONTEXT / AGENTIC: VRAM + CMX G3.5 OVERFLOW
+                            LONG-CONTEXT / AGENTIC: VRAM + NVIDIA CMX G3.5 OVERFLOW
                           </span>
                         </div>
                       </div>
@@ -507,11 +507,11 @@ export default function Explorer() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                       </span>
-                      CMX G3.5: Breaking the Memory Wall
+                      NVIDIA CMX™ G3.5: Breaking the Memory Wall
                     </h3>
                     <p className="text-gray-600">
                       Agentic AI workloads with million-token contexts explode KV cache beyond GPU HBM capacity. 
-                      NVIDIA CMX adds a <strong>G3.5 flash tier</strong> &mdash; BlueField-4 NVMe at sub-ms RDMA latency &mdash; 
+                      NVIDIA CMX™ adds a <strong>G3.5 flash tier</strong> &mdash; BlueField-4 NVMe at sub-ms RDMA latency &mdash; 
                       that holds overflow KV pages. MinIO AIStor runs natively on BF-4, delivering up to{' '}
                       <span className="font-semibold text-cyan-700">5&times; tokens/sec</span> and{' '}
                       <span className="font-semibold text-cyan-700">5&times; power efficiency</span> vs KV eviction.
@@ -595,7 +595,7 @@ export default function Explorer() {
                         <td className="px-6 py-4"><span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">BURST READ</span></td>
                       </tr>
                       <tr className="bg-cyan-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-cyan-800">KV Cache Overflow (CMX G3.5)</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-cyan-800">KV Cache Overflow (NVIDIA CMX G3.5)</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-cyan-600">Sub-ms random R/W via RDMA</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-cyan-600">Long-context / agentic requests</td>
                         <td className="px-6 py-4"><span className="px-2 py-1 text-xs font-medium bg-cyan-200 text-cyan-800 rounded">ACTIVE TIER</span></td>
@@ -620,7 +620,7 @@ export default function Explorer() {
               <BottomLine>
                 Inference is no longer just bookends. For short requests, the forward pass still runs entirely in GPU VRAM.
                 But for agentic and long-context workloads, KV cache pages overflow to the{' '}
-                <strong>CMX G3.5 tier</strong> &mdash; MinIO AIStor running natively on NVIDIA BlueField-4 within the STX rack,
+                <strong>NVIDIA CMX™ G3.5 tier</strong> &mdash; MinIO AIStor running natively on NVIDIA BlueField-4 within the STX rack,
                 delivering sub-millisecond RDMA at 800 GbE via Spectrum-X. This is storage <em>inside</em> the inference loop:
                 up to 5&times; tokens/sec vs KV eviction. Add model loading, adapter swaps, logging, and RLHF feedback,
                 and object storage touches every phase of the inference lifecycle.

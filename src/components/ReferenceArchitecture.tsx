@@ -136,14 +136,14 @@ const PIPELINE_PHASES: PipelinePhase[] = [
   {
     id: 'kvcache',
     name: '8b. KV-Cache Overflow (Inference)',
-    description: 'Long-context / agentic inference overflows KV cache from VRAM to CMX G3.5 tier via RDMA — 5× tokens/sec vs eviction.',
+    description: 'Long-context / agentic inference overflows KV cache from VRAM to NVIDIA CMX G3.5 tier via RDMA — 5× tokens/sec vs eviction.',
     storageOperation: 'Bidirectional spill ↔ refill',
     tier: 'G3.5' as unknown as PipelinePhase['tier'],
     ioPattern: 'Sub-ms RDMA, 800 GbE Spectrum-X',
     dataVolume: 'GBs-TBs KV state',
     latencyReq: '<1ms (RDMA)',
     minioRole: 'MinIO AIStor on BlueField-4 NVMe in STX rack',
-    metaComparison: 'NEW at GTC 2026: NVIDIA CMX with MinIO AIStor. 5× tokens/sec, 5× power efficiency vs KV eviction/recompute.',
+    metaComparison: 'NEW at GTC 2026: NVIDIA CMX™ with MinIO AIStor. 5× tokens/sec, 5× power efficiency vs KV eviction/recompute.',
   },
   {
     id: 'export',
@@ -187,9 +187,9 @@ const TIERS = [
   },
   {
     tier: 'G3.5',
-    name: 'NVIDIA CMX — KV-Cache Overflow',
+    name: 'NVIDIA CMX™ — KV-Cache Overflow',
     subtitle: 'MinIO AIStor on BlueField-4 NVMe (800 GbE RDMA)',
-    what: 'NVIDIA CMX (Context Memory Extension). KV-cache spills from VRAM to MinIO AIStor on BF-4 NVMe inside the STX rack via Spectrum-X 800 GbE RDMA. 5× tokens/sec, 5× power efficiency vs eviction.',
+    what: 'NVIDIA CMX™ (Context Memory Extension). KV-cache spills from VRAM to MinIO AIStor on BF-4 NVMe inside the STX rack via Spectrum-X 800 GbE RDMA. 5× tokens/sec, 5× power efficiency vs eviction.',
     capacity: 'TB+',
     latency: '<1ms (RDMA)',
     isMinIO: true,
@@ -254,7 +254,7 @@ The GPU is the COMPUTE. Storage is the STAGING AREA.
 - Checkpoints are PERIODIC WRITES (not continuous I/O)
 
 BUT for INFERENCE (GTC 2026 update):
-- KV-cache CAN overflow from VRAM to CMX G3.5 tier
+- KV-cache CAN overflow from VRAM to NVIDIA CMX G3.5 tier
 - This IS continuous, sub-ms RDMA I/O during active serving
 - MinIO AIStor on BlueField-4 NVMe in the STX rack
 - 5× tokens/sec, 5× power efficiency vs KV eviction
@@ -266,7 +266,7 @@ Think of it like this:
 
 The DPU (BlueField-4 SuperNIC in the STX rack) handles:
 - Network offload (RDMA/RoCE 800 GbE for GPU-to-GPU communication)
-- CMX G3.5 KV-cache overflow (MinIO AIStor on BF-4 NVMe)
+- NVIDIA CMX G3.5 KV-cache overflow (MinIO AIStor on BF-4 NVMe)
 - GPUDirect RDMA for S3 — zero-copy transfers
 
 Storage handles:
@@ -277,7 +277,7 @@ Storage handles:
 `, 
   comparison: [
     { old: 'iSCSI Initiator', new: 'RDMA NIC (ConnectX-9)', purpose: 'GPU-to-GPU gradient sync, 800 GbE' },
-    { old: 'TOE Card', new: 'DPU (BlueField-4 SuperNIC)', purpose: 'Network offload + CMX KV overflow' },
+    { old: 'TOE Card', new: 'DPU (BlueField-4 SuperNIC)', purpose: 'Network offload + NVIDIA CMX KV overflow' },
     { old: 'SAN Target', new: 'MinIO AIStor', purpose: 'Data Lake + Checkpoints + KV overflow' },
     { old: 'LUN', new: 'S3 Bucket', purpose: 'Namespace for objects' },
     { old: 'RAID Controller', new: 'Erasure Coding', purpose: 'Data protection' },
@@ -305,7 +305,7 @@ export default function ReferenceArchitecture() {
               AI Training & Inference Reference Architecture
             </h2>
             <p className="text-black mt-1">
-              Prescriptive. One stack. Five tiers. CMX-aware.
+              Prescriptive. One stack. Five tiers. NVIDIA CMX™-aware.
             </p>
           </div>
           <button
@@ -688,7 +688,7 @@ function StackView({ stack }: { stack: typeof STACK }) {
           META built Tectonic (custom distributed FS) to train Llama 3 on 16K GPUs.
           You get the same architecture pattern with <strong className="text-white">MinIO AIStor</strong> — 
           without building from scratch. Same S3 API, same performance class, fraction of the effort.
-          Post-GTC 2026: MinIO AIStor is also the CMX G3.5 KV-cache overflow tier for inference —
+          Post-GTC 2026: MinIO AIStor is also the NVIDIA CMX G3.5 KV-cache overflow tier for inference —
           <strong className="text-teal-400">5× tokens/sec, 5× power efficiency</strong>.
         </p>
       </div>
