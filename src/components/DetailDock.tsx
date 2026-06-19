@@ -21,9 +21,11 @@ interface DetailDockProps {
   children: ReactNode
   /** Shown in the desktop rail when nothing is selected. */
   emptyState?: ReactNode
+  /** Changing this re-triggers the entrance animation (e.g. the selected id). */
+  contentKey?: string | number
 }
 
-export default function DetailDock({ open, onClose, children, emptyState }: DetailDockProps) {
+export default function DetailDock({ open, onClose, children, emptyState, contentKey }: DetailDockProps) {
   // Escape-to-close (only relevant while the mobile sheet is open).
   useEffect(() => {
     if (!open) return
@@ -40,7 +42,7 @@ export default function DetailDock({ open, onClose, children, emptyState }: Deta
       <div className="hidden lg:block">
         <div className="sticky top-24">
           {open ? (
-            <div className="animate-scale-in">{children}</div>
+            <div key={contentKey} className="animate-scale-in">{children}</div>
           ) : (
             emptyState ?? <DefaultEmptyState />
           )}

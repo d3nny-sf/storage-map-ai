@@ -588,12 +588,12 @@ export default function InteractiveRAGExplorer() {
               <button
                 key={phase.id}
                 onClick={() => { setCurrentPhase(phase.id); setIsPlaying(false) }}
-                className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
+                className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all duration-300 ${
                   currentPhase === phase.id
-                    ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
+                    ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-[1.03]'
                     : currentPhase > phase.id
-                      ? 'bg-gray-700 text-gray-400'
-                      : 'bg-gray-800 text-gray-500'
+                      ? 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                      : 'bg-gray-800 text-gray-500 hover:bg-gray-700'
                 }`}
               >
                 <span className="block font-bold">{phase.id}. {phase.name}</span>

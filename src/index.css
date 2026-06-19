@@ -99,6 +99,22 @@
   to { transform: rotate(360deg); }
 }
 
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.85); }
+  60% { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(24px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* ===== BASE STYLES ===== */
 * {
   box-sizing: border-box;
@@ -325,13 +341,56 @@ pre code {
   animation: spin-slow 20s linear infinite;
 }
 
+.animate-slide-down {
+  animation: slide-down 0.5s var(--ease-spring) forwards;
+}
+
+.animate-pop-in {
+  animation: pop-in 0.4s var(--ease-spring) forwards;
+}
+
+/* Card / list entrance: rise + fade, starts hidden to avoid flash-of-content */
+.animate-rise-in {
+  opacity: 0;
+  animation: rise-in 0.55s var(--ease-spring) forwards;
+}
+
 /* Stagger animations */
-.stagger-1 { animation-delay: 0.1s; }
-.stagger-2 { animation-delay: 0.2s; }
-.stagger-3 { animation-delay: 0.3s; }
-.stagger-4 { animation-delay: 0.4s; }
-.stagger-5 { animation-delay: 0.5s; }
-.stagger-6 { animation-delay: 0.6s; }
+.stagger-1 { animation-delay: 0.06s; }
+.stagger-2 { animation-delay: 0.12s; }
+.stagger-3 { animation-delay: 0.18s; }
+.stagger-4 { animation-delay: 0.24s; }
+.stagger-5 { animation-delay: 0.30s; }
+.stagger-6 { animation-delay: 0.36s; }
+.stagger-7 { animation-delay: 0.42s; }
+.stagger-8 { animation-delay: 0.48s; }
+
+/* Per-item stagger driven by a CSS variable (--i) — for arbitrary-length lists */
+.stagger-item {
+  opacity: 0;
+  animation: rise-in 0.5s var(--ease-spring) forwards;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* Tactile hover lift for interactive cards/tiles */
+.hover-lift {
+  transition: transform 0.25s var(--ease-spring), box-shadow 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth);
+  will-change: transform;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+}
+.hover-lift:active {
+  transform: translateY(-1px) scale(0.995);
+}
+
+/* Subtle arrow nudge on group hover (chevrons / "next" affordances) */
+.nudge-x {
+  transition: transform 0.25s var(--ease-spring);
+}
+.group:hover .nudge-x {
+  transform: translateX(3px);
+}
 
 /* Button styles */
 .btn-primary {
@@ -443,4 +502,39 @@ input[type="search"]:focus {
   background: #3B82F6;
   bottom: -50px;
   left: -50px;
+}
+
+/* ===== ACCESSIBILITY: honor prefers-reduced-motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Entrance utilities must still land visible (not stuck at opacity:0) */
+  .animate-rise-in,
+  .stagger-item {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* Stop ambient/infinite motion entirely */
+  .animate-float,
+  .animate-pulse-glow,
+  .animate-spin-slow,
+  .shimmer-bar,
+  .hero-orb,
+  .hero-orb-1,
+  .hero-orb-2 {
+    animation: none !important;
+  }
+
+  .hover-lift:hover,
+  .hover-lift:active {
+    transform: none !important;
+  }
 }
