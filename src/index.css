@@ -278,6 +278,24 @@ pre code {
   animation: shimmer 2.5s linear infinite;
 }
 
+/* Smooth native <details> accordion chevron (Storage Veteran Guide) */
+.accordion-row > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.accordion-row > summary::-webkit-details-marker {
+  display: none;
+}
+.accordion-row > summary .chevron {
+  transition: transform 0.25s var(--ease-smooth);
+}
+.accordion-row[open] > summary .chevron {
+  transform: rotate(90deg);
+}
+.accordion-row[open] > .accordion-body {
+  animation: fade-in 0.3s var(--ease-smooth) forwards;
+}
+
 /* Animation utilities */
 .animate-slide-up {
   animation: slide-up 0.6s var(--ease-spring) forwards;

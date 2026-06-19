@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
+import DetailDock from './DetailDock'
 
 // ============================================================================
 // SOFTWARE STACK LOGOS (Text-based for now - can swap to images)
@@ -492,10 +493,11 @@ export default function StorageLayoutExplorer() {
         </div>
       </div>
 
-      {/* Main Diagram */}
-      <div className="p-6 lg:p-8">
+      {/* Main Diagram — grid on the left, detail docked on the right (desktop) */}
+      <div className="p-6 lg:p-8 lg:grid lg:grid-cols-[1fr_380px] lg:gap-8 lg:items-start">
+        <div>
         {/* Tier Cards - Responsive Layout with MORE SPACING */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
           {storageTiers.map((tier) => (
             <TierCard
               key={tier.id}
@@ -581,16 +583,18 @@ export default function StorageLayoutExplorer() {
             </div>
           </div>
         </div>
-      </div>
+        {/* end left column */}
+        </div>
 
-      {/* Detail Panel */}
-      {(selectedTier || selectedComponent) && (
-        <DetailPanel
-          tier={selectedTier}
-          component={selectedComponent}
-          onClose={handleClose}
-        />
-      )}
+        {/* Detail Dock — sticky right-rail on desktop, modal on mobile */}
+        <DetailDock open={!!(selectedTier || selectedComponent)} onClose={handleClose}>
+          <DetailPanel
+            tier={selectedTier}
+            component={selectedComponent}
+            onClose={handleClose}
+          />
+        </DetailDock>
+      </div>
 
       {/* Lakehouse Modal */}
       {showLakehouseInfo && (
@@ -736,8 +740,8 @@ function DetailPanel({ tier, component, onClose }: DetailPanelProps) {
   if (!tier) return null
 
   return (
-    <div className="border-t border-white/10 bg-gray-900/80 backdrop-blur-xl">
-      <div className="max-w-4xl mx-auto p-6">
+    <div className="rounded-2xl border border-white/10 bg-gray-900/95 lg:bg-gray-900/80 backdrop-blur-xl shadow-2xl">
+      <div className="p-6">
         <div className="flex items-start justify-between mb-6">
           <div>
             <div className="flex items-center gap-3 mb-2">
@@ -771,7 +775,7 @@ function DetailPanel({ tier, component, onClose }: DetailPanelProps) {
         </div>
 
         {component ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-4">
             <div className="bg-gray-800/50 rounded-xl p-4">
               <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Storage Use</h4>
               <p className="text-white">{component.storageUse}</p>
@@ -782,7 +786,7 @@ function DetailPanel({ tier, component, onClose }: DetailPanelProps) {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             <div>
               <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Key Details</h4>
               <ul className="space-y-2">
