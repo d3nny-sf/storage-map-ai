@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import DetailDock from './DetailDock'
 
 // =============================================================================
 // THE PRESCRIPTIVE REFERENCE ARCHITECTURE
@@ -144,7 +145,7 @@ const PIPELINE_PHASES: PipelinePhase[] = [
     dataVolume: 'GBs-TBs KV state',
     latencyReq: '<1ms (RDMA)',
     minioRole: 'MinIO MemKV — single ARM64-native binary in the NVIDIA STX rack',
-    metaComparison: 'NEW at GTC 2026: MinIO MemKV. KV cache GPU→NVMe over RDMA — no file system, no object protocol, no CPU in the data path; sustains 95%+ GPU utilization cluster-wide.',
+    metaComparison: 'The inference-era layer: MinIO MemKV. KV cache GPU→NVMe over RDMA — no file system, no object protocol, no CPU in the data path; sustains 95%+ GPU utilization cluster-wide.',
   },
   {
     id: 'export',
@@ -240,42 +241,61 @@ const TIERS = [
 // This is the key insight for your audience
 const DINOSAUR_TRANSLATION = {
   title: 'For Storage Veterans: From Block & Fabric to Objects & Tensors',
-  explanation: `
-Tensors: the multi-dimensional arrays (think: matrices of matrices)
-that hold model weights, activations, and gradients in GPU memory.
-They're the fundamental data unit of AI — what blocks are to SAN,
-tensors are to GPU compute.
-
-Your instinct: "GPU talks to storage like iSCSI initiator talks to target."
-Reality: GPU doesn't "talk to storage" during training at all.
-
-The GPU is the COMPUTE. Storage is the STAGING AREA.
-- Data is PRELOADED into GPU HBM before training starts
-- Training loop runs ENTIRELY in GPU memory (no storage I/O)
-- Checkpoints are PERIODIC WRITES (not continuous I/O)
-
-BUT for INFERENCE (GTC 2026 update):
-- The KV cache CAN live in the G3.5 context-memory layer (NVIDIA lens)
-- This IS continuous, microsecond RDMA I/O during active serving
-- MinIO MemKV — a single ARM64-native binary inside the NVIDIA STX rack
-- KV cache GPU→NVMe over RDMA: no file system, no object protocol, no CPU in the data path
-
-Think of it like this:
-- OLD: Database server doing random I/O to SAN all day
-- NEW (Training): Load the dataset, train for hours in memory, occasionally save
-- NEW (Inference): KV cache resident in the G3.5 layer over RDMA — storage IS in the hot path
-
-The DPU (BlueField-4 SuperNIC in the STX rack) handles:
-- Network offload (RDMA/RoCE 800 GbE for GPU-to-GPU communication)
-- The G3.5 context-memory data path (MinIO MemKV, GPU→NVMe over RDMA)
-- GPUDirect RDMA for S3 — zero-copy transfers
-
-Storage handles:
-- Data Lake (before training)
-- Checkpoints (during training, but periodic)
-- Model Registry (after training)
-- G3.5 context memory (during inference, continuous)
-`, 
+  tagline: 'You spent years mastering SAN, fabric, and LUNs. Good news — the instincts transfer. Here is the Rosetta Stone.',
+  // Progressive-disclosure sections (replaces the old <pre> blob)
+  sections: [
+    {
+      id: 'tensors',
+      icon: '🧮',
+      heading: 'Tensors are the new blocks',
+      summary: 'The fundamental data unit of AI.',
+      body: [
+        'Tensors are multi-dimensional arrays (think: matrices of matrices) that hold model weights, activations, and gradients in GPU memory.',
+        'What blocks are to a SAN, tensors are to GPU compute — the atomic unit everything else is built on.',
+      ],
+    },
+    {
+      id: 'staging',
+      icon: '⚡',
+      heading: 'The GPU is the compute; storage is the staging area',
+      summary: 'Reset the "initiator talks to target" instinct.',
+      body: [
+        'Your instinct: "GPU talks to storage like an iSCSI initiator talks to a target." Reality: during training the GPU does not "talk to storage" at all.',
+        'Data is PRELOADED into GPU HBM before training starts. The training loop then runs ENTIRELY in GPU memory. Checkpoints are PERIODIC writes — not continuous I/O.',
+      ],
+    },
+    {
+      id: 'inference',
+      icon: '🔥',
+      heading: 'Inference flips the script — storage enters the hot path',
+      summary: 'The KV cache makes storage continuous again.',
+      body: [
+        'For inference, the KV cache can live in the G3.5 context-memory layer (NVIDIA lens) — and that IS continuous, microsecond RDMA I/O during active serving.',
+        'MinIO MemKV is a single ARM64-native binary inside the NVIDIA STX rack. KV cache moves GPU→NVMe over RDMA: no file system, no object protocol, no CPU in the data path.',
+      ],
+    },
+    {
+      id: 'mental-model',
+      icon: '🧭',
+      heading: 'The mental model, three ways',
+      summary: 'Old database habit vs. training vs. inference.',
+      body: [
+        'OLD: a database server doing random I/O to the SAN all day long.',
+        'NEW (Training): load the dataset, train for hours in memory, occasionally save.',
+        'NEW (Inference): KV cache resident in the G3.5 layer over RDMA — storage IS in the hot path again.',
+      ],
+    },
+    {
+      id: 'roles',
+      icon: '🗂️',
+      heading: 'Who handles what',
+      summary: 'DPU vs. storage responsibilities.',
+      body: [
+        'The DPU (BlueField-4 SuperNIC in the STX rack) handles network offload (RDMA/RoCE 800 GbE for GPU-to-GPU comms), the G3.5 context-memory data path (MinIO MemKV, GPU→NVMe over RDMA), and GPUDirect RDMA for S3 — zero-copy transfers.',
+        'Storage handles the Data Lake (before training), Checkpoints (periodic, during training), the Model Registry (after training), and G3.5 context memory (continuous, during inference).',
+      ],
+    },
+  ],
   comparison: [
     { old: 'iSCSI Initiator', new: 'RDMA NIC (ConnectX-9)', purpose: 'GPU-to-GPU gradient sync, 800 GbE' },
     { old: 'TOE Card', new: 'DPU (BlueField-4 SuperNIC)', purpose: 'Network offload + G3.5 context-memory data path' },
@@ -434,94 +454,99 @@ function PipelineView({
         Each phase maps to a specific storage tier.
       </div>
 
-      {/* Phase Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-        {phases.map((phase, idx) => (
-          <button
-            key={phase.id}
-            onClick={() => onSelectPhase(selectedPhase?.id === phase.id ? null : phase)}
-            className={`relative text-left p-4 rounded-xl border-2 transition-all ${
-              selectedPhase?.id === phase.id
-                ? 'border-white/50 bg-white/10 scale-[1.02]'
-                : 'border-white/10 bg-gray-800/30 hover:border-white/30 hover:bg-gray-800/50'
-            }`}
-          >
-            {/* Tier Indicator */}
-            <div
-              className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-              style={{ backgroundColor: tierColors[phase.tier] || '#14B8A6' }}
-            >
-              {typeof phase.tier === 'string' ? phase.tier : `T${phase.tier}`}
-            </div>
-
-            {/* Phase Number */}
-            <div className="text-xs text-gray-500 mb-1">Phase {idx + 1}</div>
-            
-            {/* Phase Name */}
-            <h4 className="text-white font-semibold text-sm leading-tight pr-8">
-              {phase.name.replace(/^\d+\.\s*/, '')}
-            </h4>
-            
-            {/* Storage Op */}
-            <div className="mt-2 text-[10px] text-gray-400 font-mono">
-              {phase.storageOperation}
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* Detail Panel */}
-      {selectedPhase && (
-        <div className="mt-6 bg-gray-800/50 rounded-xl border border-white/10 p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <div
-                className="inline-block px-3 py-1 rounded-full text-xs font-bold text-white mb-2"
-                style={{ backgroundColor: tierColors[selectedPhase.tier] }}
-              >
-                TIER {selectedPhase.tier}
-              </div>
-              <h3 className="text-xl font-bold text-white">{selectedPhase.name}</h3>
-              <p className="text-gray-400 mt-1">{selectedPhase.description}</p>
-            </div>
+      {/* Phase strip on the left, detail docked on the right (desktop) */}
+      <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-6 lg:items-start">
+        {/* Phase Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+          {phases.map((phase, idx) => (
             <button
-              onClick={() => onSelectPhase(null)}
-              className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-white transition-colors"
+              key={phase.id}
+              onClick={() => onSelectPhase(selectedPhase?.id === phase.id ? null : phase)}
+              className={`relative text-left p-4 rounded-xl border-2 transition-all ${
+                selectedPhase?.id === phase.id
+                  ? 'border-white/50 bg-white/10 scale-[1.02]'
+                  : 'border-white/10 bg-gray-800/30 hover:border-white/30 hover:bg-gray-800/50'
+              }`}
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+              {/* Tier Indicator */}
+              <div
+                className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                style={{ backgroundColor: tierColors[phase.tier] || '#14B8A6' }}
+              >
+                {typeof phase.tier === 'string' ? phase.tier : `T${phase.tier}`}
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-gray-900/50 rounded-lg p-4">
-              <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">I/O Pattern</div>
-              <div className="text-white text-sm">{selectedPhase.ioPattern}</div>
-            </div>
-            <div className="bg-gray-900/50 rounded-lg p-4">
-              <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Data Volume</div>
-              <div className="text-white text-sm">{selectedPhase.dataVolume}</div>
-            </div>
-            <div className="bg-gray-900/50 rounded-lg p-4">
-              <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Latency Req</div>
-              <div className="text-white text-sm">{selectedPhase.latencyReq}</div>
-            </div>
-            <div className="bg-gray-900/50 rounded-lg p-4">
-              <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">MinIO AIStor Role</div>
-              <div className="text-white text-sm font-medium" style={{ color: selectedPhase.tier === 0 ? '#EF4444' : '#C72C48' }}>
-                {selectedPhase.minioRole}
+              {/* Phase Number */}
+              <div className="text-xs text-gray-500 mb-1">Phase {idx + 1}</div>
+
+              {/* Phase Name */}
+              <h4 className="text-white font-semibold text-sm leading-tight pr-8">
+                {phase.name.replace(/^\d+\.\s*/, '')}
+              </h4>
+
+              {/* Storage Op */}
+              <div className="mt-2 text-[10px] text-gray-400 font-mono">
+                {phase.storageOperation}
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Detail Dock — sticky right-rail on desktop, modal on mobile */}
+        <DetailDock open={!!selectedPhase} onClose={() => onSelectPhase(null)}>
+          {selectedPhase && (
+            <div className="bg-gray-900/95 lg:bg-gray-800/50 rounded-2xl border border-white/10 shadow-2xl p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <div
+                    className="inline-block px-3 py-1 rounded-full text-xs font-bold text-white mb-2"
+                    style={{ backgroundColor: tierColors[selectedPhase.tier] }}
+                  >
+                    TIER {selectedPhase.tier}
+                  </div>
+                  <h3 className="text-xl font-bold text-white">{selectedPhase.name}</h3>
+                  <p className="text-gray-400 mt-1">{selectedPhase.description}</p>
+                </div>
+                <button
+                  onClick={() => onSelectPhase(null)}
+                  className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-white transition-colors flex-shrink-0"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                <div className="bg-gray-900/50 rounded-lg p-4">
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">I/O Pattern</div>
+                  <div className="text-white text-sm">{selectedPhase.ioPattern}</div>
+                </div>
+                <div className="bg-gray-900/50 rounded-lg p-4">
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Data Volume</div>
+                  <div className="text-white text-sm">{selectedPhase.dataVolume}</div>
+                </div>
+                <div className="bg-gray-900/50 rounded-lg p-4">
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Latency Req</div>
+                  <div className="text-white text-sm">{selectedPhase.latencyReq}</div>
+                </div>
+                <div className="bg-gray-900/50 rounded-lg p-4">
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">MinIO AIStor Role</div>
+                  <div className="text-white text-sm font-medium" style={{ color: selectedPhase.tier === 0 ? '#EF4444' : '#E91A45' }}>
+                    {selectedPhase.minioRole}
+                  </div>
+                </div>
+              </div>
+
+              {/* META Comparison */}
+              <div className="mt-4 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                <div className="text-xs text-blue-400 font-semibold uppercase tracking-wider mb-1">META Comparison</div>
+                <p className="text-gray-300 text-sm">{selectedPhase.metaComparison}</p>
               </div>
             </div>
-          </div>
-
-          {/* META Comparison */}
-          <div className="mt-4 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-            <div className="text-xs text-blue-400 font-semibold uppercase tracking-wider mb-1">META Comparison</div>
-            <p className="text-gray-300 text-sm">{selectedPhase.metaComparison}</p>
-          </div>
-        </div>
-      )}
+          )}
+        </DetailDock>
+      </div>
 
       {/* Legend */}
       <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-white/10">
@@ -689,8 +714,8 @@ function StackView({ stack }: { stack: typeof STACK }) {
           META built Tectonic (custom distributed FS) to train Llama 3 on 16K GPUs.
           You get the same architecture pattern with <strong className="text-white">MinIO AIStor</strong> — 
           without building from scratch. Same S3 API, same performance class, fraction of the effort.
-          Post-GTC 2026: <strong className="text-teal-400">MinIO MemKV</strong> also serves the G3.5 context-memory
-          layer for inference — KV cache GPU→NVMe over RDMA, no CPU in the data path, 95%+ GPU utilization cluster-wide.
+          And in the inference era, <strong className="text-teal-400">MinIO MemKV</strong> also serves the G3.5 context-memory
+          layer — KV cache GPU→NVMe over RDMA, no CPU in the data path, 95%+ GPU utilization cluster-wide.
         </p>
       </div>
     </div>
@@ -704,21 +729,50 @@ function DinosaurGuideModal({
   data: typeof DINOSAUR_TRANSLATION
   onClose: () => void
 }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+    }
+  }, [onClose])
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-gray-900 rounded-2xl border border-white/10 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-white/10 bg-gradient-to-r from-amber-500/20 to-transparent">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-4xl">🦖</span>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      {/* Backdrop */}
+      <button
+        aria-label="Close guide"
+        onClick={onClose}
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-fade-in"
+      />
+
+      {/* Shell */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="relative w-full sm:max-w-3xl max-h-[92vh] sm:max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl border border-white/10 glass-rail shadow-2xl animate-slide-up"
+      >
+        {/* Glow-wash hero */}
+        <div className="glow-wash sticky top-0 z-10 px-6 py-6 sm:px-8 sm:py-7 border-b border-white/10 glass-rail">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <span className="text-5xl animate-float drop-shadow-[0_0_12px_rgba(145,79,219,0.6)]" aria-hidden>🦖</span>
               <div>
-                <h3 className="text-xl font-bold text-white">{data.title}</h3>
-                <p className="text-amber-400 text-sm">A translation for storage veterans</p>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-accent-purple/20 text-accent-purple-light border border-accent-purple/30">
+                  Storage Veteran Guide
+                </span>
+                <h3 className="mt-2 text-xl sm:text-2xl font-bold text-white leading-tight">{data.title}</h3>
+                <p className="mt-1.5 text-sm text-gray-300 max-w-xl">{data.tagline}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+              aria-label="Close"
+              className="shrink-0 p-2 rounded-xl bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-colors border border-white/10"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -727,55 +781,84 @@ function DinosaurGuideModal({
           </div>
         </div>
 
-        <div className="p-6 space-y-6">
-          {/* Key Explanation */}
-          <div className="bg-gray-800/50 rounded-xl p-5">
-            <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono leading-relaxed">
-              {data.explanation}
-            </pre>
+        <div className="p-6 sm:p-8 space-y-7">
+          {/* Progressive-disclosure concepts */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400">Start here · tap to expand</h4>
+            {data.sections.map((section, i) => (
+              <details
+                key={section.id}
+                className="accordion-row group rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition-colors overflow-hidden"
+                open={i === 0}
+              >
+                <summary className="flex items-center gap-3 px-4 py-3.5 select-none">
+                  <span className="text-2xl shrink-0" aria-hidden>{section.icon}</span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-white font-semibold">{section.heading}</span>
+                    <span className="block text-xs text-gray-400 truncate">{section.summary}</span>
+                  </span>
+                  <svg className="chevron w-4 h-4 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </summary>
+                <div className="accordion-body px-4 pb-4 pl-[3.75rem] space-y-2.5">
+                  {section.body.map((para, j) => (
+                    <p key={j} className="text-sm text-gray-300 leading-relaxed">{para}</p>
+                  ))}
+                </div>
+              </details>
+            ))}
           </div>
 
-          {/* Translation Table */}
+          {/* Animated translation rows: Old World → AI World */}
           <div>
-            <h4 className="text-white font-semibold mb-3">The Translation Table</h4>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-gray-400 border-b border-white/10">
-                    <th className="pb-2 pr-4">Old World</th>
-                    <th className="pb-2 pr-4">AI World</th>
-                    <th className="pb-2">Purpose</th>
-                  </tr>
-                </thead>
-                <tbody className="text-gray-300">
-                  {data.comparison.map((row, i) => (
-                    <tr key={i} className="border-b border-white/5">
-                      <td className="py-2 pr-4 text-red-400">{row.old}</td>
-                      <td className="py-2 pr-4 text-emerald-400">{row.new}</td>
-                      <td className="py-2 text-gray-400">{row.purpose}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-white font-semibold">The Rosetta Stone</h4>
+              <span className="text-xs text-gray-500">Old World → AI World</span>
+            </div>
+            <div className="space-y-2.5">
+              {data.comparison.map((row, i) => (
+                <div
+                  key={i}
+                  className="group flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 animate-slide-up"
+                  style={{ animationDelay: `${i * 60}ms` }}
+                >
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-raspberry/15 text-accent-purple-light border border-raspberry/30 sm:w-44 shrink-0">
+                    {row.old}
+                  </span>
+                  <svg
+                    className="hidden sm:block w-5 h-5 text-gray-500 shrink-0 transition-transform group-hover:translate-x-1"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5-5 5M6 12h12" />
+                  </svg>
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold bg-accent-green/15 text-accent-green border border-accent-green/30 sm:w-56 shrink-0">
+                    {row.new}
+                  </span>
+                  <span className="text-xs text-gray-400 sm:flex-1">{row.purpose}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Critical Insight */}
-          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-5">
-            <h4 className="text-red-400 font-bold mb-2">⚠️ The Critical Insight</h4>
+          {/* Critical insight */}
+          <div className="rounded-2xl border border-raspberry/30 bg-raspberry/[0.08] p-5">
+            <h4 className="flex items-center gap-2 text-accent-purple-light font-bold mb-2">
+              <span aria-hidden>⚠️</span> The Critical Insight
+            </h4>
             <p className="text-gray-300 text-sm">
-              <strong className="text-white">For Training: Storage is NOT in the critical path.</strong><br />
-              The GPU training loop runs entirely in GPU memory. Storage is used for:
+              <strong className="text-white">For training: storage is NOT in the critical path.</strong> The GPU
+              training loop runs entirely in GPU memory. Storage is used for:
             </p>
             <ul className="mt-2 space-y-1 text-sm text-gray-400">
-              <li>• <strong className="text-amber-400">Before:</strong> Loading the dataset (DataLoader → GPU)</li>
-              <li>• <strong className="text-amber-400">During:</strong> Periodic checkpoints (every N steps)</li>
-              <li>• <strong className="text-amber-400">After:</strong> Saving the final model</li>
+              <li>• <strong className="text-accent-amber">Before:</strong> loading the dataset (DataLoader → GPU)</li>
+              <li>• <strong className="text-accent-amber">During:</strong> periodic checkpoints (every N steps)</li>
+              <li>• <strong className="text-accent-amber">After:</strong> saving the final model</li>
             </ul>
             <p className="mt-3 text-gray-300 text-sm">
-              <strong className="text-teal-400">For Inference (NEW — GTC 2026):</strong> Storage IS in the hot path.
-              The KV cache lives in the G3.5 context-memory layer via MinIO MemKV — GPU→NVMe over RDMA,
-              no file system, no object protocol, no CPU in the data path. Continuous, microsecond I/O during serving.
+              <strong className="text-accent-cyan">For inference, the script flips:</strong> storage IS in the hot path.
+              The KV cache lives in the G3.5 context-memory layer via MinIO MemKV — GPU→NVMe over RDMA, no file
+              system, no object protocol, no CPU in the data path. Continuous, microsecond I/O during serving.
             </p>
           </div>
         </div>
