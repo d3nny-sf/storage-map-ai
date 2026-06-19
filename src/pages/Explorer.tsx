@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { PageHeader, BottomLine } from '../components/PipelineDiagram'
 import InteractiveTrainingExplorer from '../components/InteractiveTrainingExplorer'
 import InteractiveRAGExplorer from '../components/InteractiveRAGExplorer'
@@ -56,6 +56,19 @@ export default function Explorer() {
         subtitle="A Guided Sequence"
         description="A prescriptive, step-by-step walk through AI storage: ONE stack, clear tiers, every workload. Built for storage veterans learning AI infrastructure — follow the numbered path or jump to any step."
       >
+        {/* Breadcrumb wayfinding */}
+        <nav aria-label="Breadcrumb" className="mt-6">
+          <ol className="flex items-center gap-2 text-sm text-gray-400">
+            <li>
+              <Link to="/" className="hover:text-white transition-colors">AI Storage Map</Link>
+            </li>
+            <li aria-hidden="true" className="text-gray-600">/</li>
+            <li className="text-gray-300">Explorer</li>
+            <li aria-hidden="true" className="text-gray-600">/</li>
+            <li aria-current="page" className="text-raspberry-light font-medium">{views[currentIndex]?.name}</li>
+          </ol>
+        </nav>
+
         {/* Guided step rail */}
         <div className="mt-8">
           {/* Progress bar */}

@@ -14,6 +14,11 @@ export default function Layout() {
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  // The Explorer "look here" pulse should only nudge first-time visitors.
+  const [explorerVisited, setExplorerVisited] = useState(() => {
+    if (typeof window === 'undefined') return true
+    return window.localStorage.getItem('explorerVisited') === 'true'
+  })
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,6 +27,14 @@ export default function Layout() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  // Record the first Explorer visit so the header pulse stops nagging.
+  useEffect(() => {
+    if (location.pathname === '/explorer' && !explorerVisited) {
+      window.localStorage.setItem('explorerVisited', 'true')
+      setExplorerVisited(true)
+    }
+  }, [location.pathname, explorerVisited])
 
   // Close mobile menu on route change
   const prevPathname = location.pathname
@@ -81,7 +94,7 @@ export default function Layout() {
                     {isActive && (
                       <span className="absolute inset-0 bg-gradient-to-r from-raspberry to-raspberry-dark rounded-lg -z-10" />
                     )}
-                    {isHighlight && !isActive && (
+                    {isHighlight && !isActive && !explorerVisited && (
                       <span className="absolute -top-1 -right-1 w-2 h-2 bg-raspberry rounded-full animate-pulse" />
                     )}
                     {link.label}
