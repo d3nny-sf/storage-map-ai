@@ -67,8 +67,8 @@ const matrix: Record<Phase, Record<string, PhaseDetail>> = {
       s3Path: 's3://data-lake/raw/common-crawl/',
       ioProfile: 'Sequential writes, 10-50 GB/s ingestion',
       volume: 'Petabytes',
-      minioFeature: '165 GiB/s PUT throughput (32-node cluster); 2.5 TiB/s aggregate on 300-server deployment',
-      paperRef: 'Whitepaper: "325 GiB/s on GET, 165 GiB/s on PUT" (32-node benchmark); "2.5 TiB/s of throughput from around 300 servers"',
+      minioFeature: 'High sustained PUT throughput on an 8-node reference cluster (~34.4 GB/s PUT); scales linearly as nodes are added',
+      paperRef: 'Source of truth (minio-core-v2): 8-Node AIStor Reference Cluster — ~103.5 GB/s aggregate GET, ~34.4 GB/s PUT, scales with node count',
     },
     rag: {
       role: 'primary',
@@ -159,15 +159,15 @@ const matrix: Record<Phase, Record<string, PhaseDetail>> = {
   'Active Compute Loop': {
     training: {
       role: 'buffered',
-      short: 'Streaming 325 GiB/s',
-      detail: 'PyTorch DataLoader streams tokenized shards from Hot S3 (Tier 1) with multi-worker prefetch. MinIO Cache (distributed shared DRAM cache) eliminates cold reads and prevents GPU starvation. GPU training loop runs in VRAM — no storage I/O during forward/backward pass.',
+      short: 'High-throughput streaming',
+      detail: 'PyTorch DataLoader streams tokenized shards from fast S3 (Tier 1, RDMA → 100% NVMe) with multi-worker prefetch. MinIO Cache (distributed shared DRAM cache) eliminates cold reads and prevents GPU starvation. GPU training loop runs in HBM — no storage I/O during forward/backward pass.',
       tier: [0, 1],
       apps: ['PyTorch DataLoader', 'Ray', 'DeepSpeed'],
       s3Path: 's3://lakehouse/gold/tokenized-shards/',
-      ioProfile: 'Sequential reads w/ prefetch, 325 GiB/s',
+      ioProfile: 'Sequential reads w/ prefetch, high aggregate GET',
       volume: 'Continuous stream',
-      minioFeature: '325 GiB/s GET throughput; MinIO Cache (DRAM) prevents GPU starvation on hot reads',
-      paperRef: 'Whitepaper: "325 GiB/s on GET" (32-node benchmark); "MinIO Cache" — distributed shared DRAM cache for ultra-high-performance AI workloads',
+      minioFeature: '~103.5 GB/s aggregate GET on an 8-node reference cluster (scales with nodes); MinIO Cache (DRAM) prevents GPU starvation on hot reads',
+      paperRef: 'Source of truth (minio-core-v2): 8-Node AIStor Reference Cluster ~103.5 GB/s aggregate GET; "MinIO Cache" — distributed shared DRAM cache for high-performance AI workloads',
     },
     rag: {
       role: 'varies',
@@ -190,20 +190,20 @@ const matrix: Record<Phase, Record<string, PhaseDetail>> = {
       s3Path: 's3://finetune-data/customer-support-v2/train.jsonl',
       ioProfile: 'Sequential reads (small dataset)',
       volume: 'MBs to GBs',
-      minioFeature: 'Fast single-object read; 46.5 GB/s GET on 8-node cluster sufficient for small-scale fine-tuning',
-      paperRef: 'Whitepaper: "46.5 GB/s on GETs" on 8-node cluster benchmark',
+      minioFeature: 'Fast single-object read; an 8-node reference cluster (~103.5 GB/s aggregate GET) is far more than enough for small-scale fine-tuning',
+      paperRef: 'Source of truth (minio-core-v2): 8-Node AIStor Reference Cluster ~103.5 GB/s aggregate GET',
     },
     inference: {
       role: 'active-tier',
-      short: 'NVIDIA CMX G3.5 KV Overflow',
-      detail: 'Short requests run entirely in GPU VRAM. For agentic and long-context workloads, KV cache pages overflow to NVIDIA CMX G3.5 — powered by MinIO AIStor running natively on BlueField-4 NVMe within the STX rack. Sub-ms RDMA via Spectrum-X 800 GbE. Up to 5× tokens/sec vs KV eviction.',
+      short: 'MemKV G3.5 Context Memory',
+      detail: 'Short requests run entirely in GPU HBM. For agentic and long-context workloads, the KV cache lives in the G3.5 context-memory layer (NVIDIA memory-hierarchy lens) instead of being evicted and recomputed. MinIO MemKV moves KV cache GPU→NVMe over RDMA — no file system, no object protocol, no CPU in the data path — over Spectrum-X 800 GbE.',
       tier: [0, 1] as Tier[],
-      apps: ['vLLM', 'Triton', 'NIXL', 'Grove'],
-      s3Path: 's3://cmx-kv-cache/{session-id}/kv-pages/ (managed by NIXL/Grove)',
-      ioProfile: 'Sub-ms random R/W via RDMA (long-context/agentic)',
+      apps: ['vLLM', 'Triton', 'NIXL', 'Dynamo/KVBM'],
+      s3Path: '# G3.5 context-memory pool (NIXL plugin, not the S3 API)',
+      ioProfile: 'Microsecond random R/W via RDMA (long-context/agentic)',
       volume: 'GBs-TBs of KV state per session',
-      minioFeature: 'MinIO AIStor on BlueField-4 — <200 MB binary, sub-ms KV overflow, 5× tokens/sec, 5× power efficiency vs eviction',
-      paperRef: 'NVIDIA CMX Developer Blog: G3.5 context memory tier; MinIO AIStor press release: "extends the NVIDIA CMX memory hierarchy"',
+      minioFeature: 'MinIO MemKV — single ARM64-native binary in the NVIDIA STX rack; KV cache GPU→NVMe over RDMA, no CPU in the data path; 2–16 MB blocks; sustains 95%+ GPU utilization cluster-wide',
+      paperRef: 'Public product page (min.io/product/memkv): G3.5 context-memory layer between GPU HBM and object storage',
     },
   },
 
@@ -301,8 +301,8 @@ const matrix: Record<Phase, Record<string, PhaseDetail>> = {
       s3Path: 's3://model-registry/llama-3-70b/v1.0/model.safetensors',
       ioProfile: 'Large burst read (model) + small reads (adapters)',
       volume: '16-140 GB models, 50-500 MB adapters',
-      minioFeature: 'MinIO Cache (DRAM) — sub-second adapter swaps; 325 GiB/s GET for model loading',
-      paperRef: 'Whitepaper: "MinIO Cache" — distributed shared DRAM cache; 325 GiB/s GET (32-node benchmark)',
+      minioFeature: 'MinIO Cache (DRAM) — sub-second adapter swaps; high aggregate GET for model loading (~103.5 GB/s on 8 nodes, scaling with node count)',
+      paperRef: 'Source of truth (minio-core-v2): 8-Node AIStor Reference Cluster ~103.5 GB/s aggregate GET; "MinIO Cache" — distributed shared DRAM cache',
     },
   },
 
@@ -423,9 +423,9 @@ const workloadSummaries: WorkloadSummary[] = [
     intensityPct: 100,
     nodeCount: 8,
     description: 'Pre-training from petabytes of raw data. Storage in every phase.',
-    keyInsight: 'Storage throughput = GPU utilization. Every GB/s of storage throughput lost is $30-50/min burned on idle GPUs (1000-GPU cluster). MinIO delivers 325 GiB/s GET on 32 nodes.',
+    keyInsight: 'Storage throughput = GPU utilization. Throughput lost to slow storage shows up directly as idle, expensive GPUs. An 8-node AIStor reference cluster sustains ~103.5 GB/s aggregate GET and scales linearly with node count.',
     hotPath: 'Yes — throughput-sensitive end-to-end',
-    peakThroughput: '325 GiB/s GET (32-node)',
+    peakThroughput: '~103.5 GB/s GET (8-node, scales)',
     dataScale: 'Petabytes in, terabytes of checkpoints',
   },
   {
@@ -453,9 +453,9 @@ const workloadSummaries: WorkloadSummary[] = [
     intensityPct: 45,
     nodeCount: 6,
     description: 'LoRA/QLoRA — same patterns as training at 1,000-5,000x smaller scale.',
-    keyInsight: 'LoRA adapter ~100MB vs full checkpoint ~500GB. Same S3 patterns, dramatically different scale. 46.5 GB/s GET on an 8-node cluster is more than enough.',
+    keyInsight: 'LoRA adapter ~100MB vs full checkpoint ~500GB. Same S3 patterns, dramatically different scale. An 8-node reference cluster (~103.5 GB/s aggregate GET) is far more than enough.',
     hotPath: 'Possibly (adapter swap at inference)',
-    peakThroughput: '46.5 GB/s GET (8-node)',
+    peakThroughput: '~103.5 GB/s GET (8-node)',
     dataScale: 'MBs datasets, MBs adapters',
   },
   {
@@ -464,13 +464,13 @@ const workloadSummaries: WorkloadSummary[] = [
     color: 'text-cyan-600',
     bgColor: 'bg-cyan-600',
     borderColor: 'border-cyan-600',
-    intensity: 'Active Tier (NVIDIA CMX)',
+    intensity: 'Active Tier (MemKV G3.5)',
     intensityPct: 55,
     nodeCount: 7,
-    description: 'Model serving. For agentic/long-context workloads, KV cache overflows to NVIDIA CMX G3.5 — storage IS in the inference loop.',
-    keyInsight: 'Short requests stay in VRAM. Agentic AI with million-token contexts overflows KV cache to NVIDIA CMX G3.5 — powered by MinIO AIStor on BlueField-4 at sub-ms RDMA. 5× tokens/sec vs eviction. Plus model loading, adapter swaps, logging, RLHF feedback.',
-    hotPath: 'Yes — NVIDIA CMX G3.5 for long-context/agentic',
-    peakThroughput: 'Sub-ms RDMA (NVIDIA CMX); 325 GiB/s model load',
+    description: 'Model serving. For agentic/long-context workloads, the KV cache lives in the G3.5 context-memory layer (MinIO MemKV) — storage IS in the inference loop.',
+    keyInsight: 'Short requests stay in GPU HBM. Agentic AI with long contexts keeps the KV cache resident in the G3.5 layer (MinIO MemKV) — GPU→NVMe over RDMA, no CPU in the data path — instead of evicting and recomputing. Plus model loading, adapter swaps, logging, RLHF feedback.',
+    hotPath: 'Yes — MemKV G3.5 for long-context/agentic',
+    peakThroughput: 'Microsecond RDMA (MemKV); high-throughput model load',
     dataScale: '16-140 GB model, GBs-TBs KV state',
   },
 ]
@@ -485,14 +485,15 @@ const roleConfig: Record<Role, { bg: string; text: string; label: string; dot: s
   'burst':       { bg: 'bg-gradient-to-r from-blue-500 to-blue-600',        text: 'text-white', label: 'Burst', dot: 'bg-blue-500' },
   'not-in-path': { bg: 'bg-gradient-to-r from-gray-300 to-gray-400',        text: 'text-white', label: 'Not In Path', dot: 'bg-gray-400' },
   'varies':      { bg: 'bg-gradient-to-r from-purple-500 to-purple-600',    text: 'text-white', label: 'Varies', dot: 'bg-purple-500' },
-  'active-tier': { bg: 'bg-gradient-to-r from-teal-500 to-cyan-600',        text: 'text-white', label: 'Active Tier (NVIDIA CMX)', dot: 'bg-cyan-500' },
+  'active-tier': { bg: 'bg-gradient-to-r from-teal-500 to-cyan-600',        text: 'text-white', label: 'Active Tier (MemKV G3.5)', dot: 'bg-cyan-500' },
 }
 
+// Storage-agnostic ILM lens (Lens B) — distinct from the NVIDIA memory hierarchy.
 const tierColors: Record<number, { bg: string; text: string; label: string }> = {
-  0: { bg: 'bg-emerald-500',  text: 'text-emerald-700', label: 'T0 NVMe Local (Block)' },
-  1: { bg: 'bg-raspberry',    text: 'text-raspberry',   label: 'T1 NVMe Local (PVC / S3)' },
-  2: { bg: 'bg-amber-500',    text: 'text-amber-600',   label: 'T2 Fastest S3 over RDMA (800 GbE)' },
-  3: { bg: 'bg-gray-500',     text: 'text-gray-600',    label: 'T3 S3 to NVMe/SSD 100 GbE' },
+  0: { bg: 'bg-emerald-500',  text: 'text-emerald-700', label: 'T0 NVMe Local Bus / Direct-Attach (DirectPV/K8s)' },
+  1: { bg: 'bg-raspberry',    text: 'text-raspberry',   label: 'T1 RDMA → S3 to 100% NVMe' },
+  2: { bg: 'bg-amber-500',    text: 'text-amber-600',   label: 'T2 Standard S3 (100G) to 100% NVMe' },
+  3: { bg: 'bg-gray-500',     text: 'text-gray-600',    label: 'T3 Standard S3 (25G/100G) to SSD or hybrid SSD/HDD (cold)' },
 }
 
 const workloads = [
@@ -548,10 +549,9 @@ export default function Compare() {
               <div>
                 <h3 className="text-white font-bold text-sm mb-1">Source: MinIO High-Performance Object Storage for AI Data Infrastructure</h3>
                 <p className="text-sm text-gray-400 leading-relaxed">
-                  All throughput benchmarks, feature descriptions, and architectural claims on this page are cross-referenced with the MinIO whitepaper.
-                  Key benchmarks: <span className="text-emerald-400 font-mono text-xs">325 GiB/s GET</span> and <span className="text-emerald-400 font-mono text-xs">165 GiB/s PUT</span> on a 32-node cluster (AWS i3en.24xlarge);{' '}
-                  <span className="text-emerald-400 font-mono text-xs">46.5 GB/s GET</span> and <span className="text-emerald-400 font-mono text-xs">34.4 GB/s PUT</span> on an 8-node cluster;{' '}
-                  <span className="text-emerald-400 font-mono text-xs">2.5 TiB/s</span> aggregate on 300 servers. Encryption has negligible performance impact.
+                  All throughput numbers, feature descriptions, and architectural claims on this page are cross-referenced with the MinIO source of truth.
+                  Reference benchmark (8-Node AIStor Reference Cluster): <span className="text-emerald-400 font-mono text-xs">~103.5 GB/s aggregate GET</span> (~12.9 GB/s/node) and <span className="text-emerald-400 font-mono text-xs">~34.4 GB/s PUT</span>,{' '}
+                  <span className="text-emerald-400 font-mono text-xs">4.4 PB usable</span>, 400G ConnectX-7 per node — scaling linearly as nodes are added. Encryption has negligible performance impact.
                 </p>
               </div>
             </div>
@@ -995,7 +995,7 @@ export default function Compare() {
                 {[
                   { label: 'Training', sub: 'Build the base model', color: 'from-raspberry to-raspberry-dark', arrow: true },
                   { label: 'Fine-Tuning', sub: 'Adapt with LoRA', color: 'from-blue-500 to-blue-600', arrow: true },
-                  { label: 'Inference', sub: 'Serve + NVIDIA CMX KV overflow', color: 'from-teal-500 to-cyan-600', arrow: true },
+                  { label: 'Inference', sub: 'Serve + MemKV G3.5 context memory', color: 'from-teal-500 to-cyan-600', arrow: true },
                   { label: 'RAG', sub: 'Augment with external data', color: 'from-amber-500 to-orange-500', arrow: false },
                 ].map((step, i) => (
                   <div key={step.label} className="relative">
@@ -1043,17 +1043,17 @@ export default function Compare() {
         {/* ============================================================= */}
         <section className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Key Numbers at a Glance</h2>
-          <p className="text-sm text-gray-500 mb-6">All benchmarks from the MinIO High-Performance Object Storage for AI Data Infrastructure whitepaper</p>
+          <p className="text-sm text-gray-500 mb-6">Reference numbers from the 8-Node AIStor Reference Cluster (minio-core-v2 source of truth) — scaling linearly with node count</p>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
             {[
-              { number: '325 GiB/s', label: 'GET throughput', sub: '32-node cluster', color: 'text-raspberry' },
-              { number: '165 GiB/s', label: 'PUT throughput', sub: '32-node cluster', color: 'text-raspberry' },
-              { number: '2.5 TiB/s', label: 'Aggregate read', sub: '300-server deployment', color: 'text-raspberry' },
-              { number: '46.5 GB/s', label: 'GET throughput', sub: '8-node cluster', color: 'text-amber-500' },
-              { number: '34.4 GB/s', label: 'PUT throughput', sub: '8-node cluster', color: 'text-amber-500' },
+              { number: '~103.5 GB/s', label: 'Aggregate GET', sub: '8-node reference', color: 'text-raspberry' },
+              { number: '~12.9 GB/s', label: 'Per-node GET', sub: '8-node reference', color: 'text-raspberry' },
+              { number: '~34.4 GB/s', label: 'PUT throughput', sub: '8-node reference', color: 'text-raspberry' },
+              { number: '4.4 PB', label: 'Usable capacity', sub: '8-node reference', color: 'text-amber-500' },
+              { number: '400G', label: 'NIC per node', sub: 'ConnectX-7', color: 'text-amber-500' },
               { number: '500GB-1TB', label: 'Per checkpoint', sub: '70B model + optimizer', color: 'text-blue-500' },
               { number: '~100MB', label: 'LoRA adapter', sub: '5,000x smaller', color: 'text-blue-500' },
-              { number: '<100 MB', label: 'MinIO binary', sub: 'Single Go binary', color: 'text-emerald-500' },
+              { number: 'Single binary', label: 'MinIO MemKV', sub: 'ARM64-native in STX', color: 'text-emerald-500' },
             ].map((stat, i) => (
               <div key={i} className="bg-white rounded-xl border border-gray-200 p-3 text-center hover:shadow-md transition-shadow">
                 <div className={`text-lg font-bold ${stat.color} mb-0.5`}>{stat.number}</div>
@@ -1073,8 +1073,8 @@ export default function Compare() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { feature: 'MinIO Cache', desc: 'Distributed shared DRAM cache for ultra-high-performance reads. Prevents GPU starvation during DataLoader streaming.', phases: ['Active Compute Loop', 'Model Registry'], icon: '⚡' },
-              { feature: 'NVIDIA CMX™ G3.5 / BF-4 Native', desc: 'MinIO AIStor runs natively on NVIDIA BlueField-4 within the STX rack — <200 MB binary, ARM/SVE2 optimized. Provides KV-cache overflow for agentic inference at sub-ms RDMA. 5× tokens/sec, 5× power efficiency vs eviction.', phases: ['Inference (Active Compute Loop)', 'Agentic AI'], icon: '🧠' },
-              { feature: 'GPUDirect RDMA for S3', desc: 'Sub-millisecond S3 object access via GPUDirect RDMA. Zero-copy NVMe-to-GPU memory transfers. Hardware-accelerated erasure coding via SVE2 SIMD on BlueField-4.', phases: ['NVIDIA CMX G3.5', 'Model Loading'], icon: '🔗' },
+              { feature: 'MinIO MemKV — G3.5 Context Memory', desc: 'A single ARM64-native binary that runs inside the NVIDIA STX rack. Moves KV cache GPU→NVMe over RDMA with no file system, no object protocol, and no CPU in the data path. 2–16 MB blocks; sustains 95%+ GPU utilization cluster-wide; ~100× scale for agentic/long-context.', phases: ['Inference (G3.5 layer)', 'Agentic AI'], icon: '🧠' },
+              { feature: 'GPUDirect RDMA for S3', desc: 'Sub-millisecond S3 object access via GPUDirect RDMA. Zero-copy NVMe-to-GPU memory transfers over Spectrum-X 800 GbE and PCIe Gen6.', phases: ['G3.5 layer', 'Model Loading'], icon: '🔗' },
               { feature: 'MinIO Catalog', desc: 'GraphQL-based namespace and metadata search across billions of objects. Find any adapter, checkpoint, or dataset instantly.', phases: ['Model Registry', 'Experiment Tracking'], icon: '🔍' },
               { feature: 'MinIO Firewall', desc: 'S3-aware data-centric firewall handling TLS, load balancing, QoS. Secures the data path without sacrificing throughput.', phases: ['All network paths'], icon: '🛡' },
               { feature: 'Erasure Coding', desc: 'Per-object inline Reed-Solomon in assembly. 12-drive, 6-parity config tolerates up to 5 drive failures (~50% loss).', phases: ['Checkpointing', 'Data Ingestion'], icon: '🔒' },
@@ -1122,15 +1122,15 @@ export default function Compare() {
                 <tbody className="divide-y divide-gray-100">
                   {[
                     {
-                      tier: 0, label: 'NVMe Local (Block)', spec: '<100 us, Node-Local',
-                      minio: 'NOT MinIO AIStor',
-                      training: 'Spark shuffle, GPU VRAM',
+                      tier: 0, label: 'NVMe Local Bus / Direct-Attach (DirectPV/K8s)', spec: '<100 us, Node-Local',
+                      minio: 'MinIO DirectPV',
+                      training: 'Spark shuffle, GPU HBM',
                       rag: 'Weaviate HNSW index',
-                      fineTuning: 'GPU VRAM (LoRA)',
-                      inference: 'vLLM KV cache, VRAM',
+                      fineTuning: 'GPU HBM (LoRA)',
+                      inference: 'vLLM KV cache, GPU HBM',
                     },
                     {
-                      tier: 1, label: 'NVMe Local (PVC / S3)', spec: '1-5ms, In-Cluster',
+                      tier: 1, label: 'RDMA → S3 to 100% NVMe', spec: '1-5ms, In-Cluster',
                       minio: 'MinIO AIStor',
                       training: 'DataLoader streaming, MLflow',
                       rag: 'Embeddings cache',
@@ -1138,15 +1138,15 @@ export default function Compare() {
                       inference: 'Model load, adapter swaps',
                     },
                     {
-                      tier: 'G3.5' as unknown as number, label: 'NVIDIA CMX Context Memory (BF-4 NVMe)', spec: '<500μs, RDMA 800 GbE',
-                      minio: 'MinIO AIStor',
+                      tier: 'G3.5' as unknown as number, label: 'MinIO MemKV — G3.5 Context Memory (NVIDIA lens)', spec: 'microsecond RDMA, Spectrum-X 800 GbE',
+                      minio: 'MinIO MemKV',
                       training: '—',
                       rag: '—',
                       fineTuning: '—',
-                      inference: 'KV cache overflow (agentic/long-context)',
+                      inference: 'KV cache resident (agentic/long-context)',
                     },
                     {
-                      tier: 2, label: 'Fastest S3 over RDMA to NVMe (800 GbE)', spec: '5-15ms, RDMA',
+                      tier: 2, label: 'Standard S3 (100G) to 100% NVMe', spec: '5-15ms, 100 GbE',
                       minio: 'MinIO AIStor',
                       training: 'Lakehouse, checkpoints, registry',
                       rag: 'Document store, corpus',
@@ -1154,7 +1154,7 @@ export default function Compare() {
                       inference: 'Model registry, logs, feedback',
                     },
                     {
-                      tier: 3, label: 'S3 to NVMe/SSD (100 GbE)', spec: '15-50ms, SSD Recommended',
+                      tier: 3, label: 'Standard S3 (25G/100G) to SSD or hybrid SSD/HDD (cold)', spec: '15-50ms, SSD/HDD cold',
                       minio: 'MinIO AIStor',
                       training: 'Compliance archive',
                       rag: '—',
@@ -1164,7 +1164,7 @@ export default function Compare() {
                   ].map((row) => {
                     const tierColor = typeof row.tier === 'number' ? tierColors[row.tier]?.bg : 'bg-cyan-600'
                     const tierLabel = typeof row.tier === 'number' ? `T${row.tier}` : 'G3.5'
-                    const isMinIO = row.tier !== 0
+                    const isMinIO = row.minio !== 'NOT MinIO AIStor'
                     return (
                     <tr key={String(row.tier)} className="hover:bg-gray-50/50">
                       <td className="px-5 py-3 whitespace-nowrap">
@@ -1203,12 +1203,12 @@ export default function Compare() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Cluster benchmarks */}
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
-              <h3 className="font-bold text-gray-900 mb-4">MinIO AIStor Cluster Benchmarks</h3>
+              <h3 className="font-bold text-gray-900 mb-4">MinIO AIStor Reference Cluster</h3>
               <div className="space-y-4">
                 {[
-                  { cluster: '8-Node Cluster', get: '46.5 GB/s', put: '34.4 GB/s', note: 'Encryption negligible overhead' },
-                  { cluster: '32-Node Cluster', get: '325 GiB/s', put: '165 GiB/s', note: 'AWS i3en.24xlarge, EC 4 parity' },
-                  { cluster: '300-Server Deploy', get: '2.5 TiB/s', put: '—', note: 'Aggregate read throughput' },
+                  { cluster: '8-Node Reference (per node)', get: '~12.9 GB/s', put: '—', note: '400G ConnectX-7 per node' },
+                  { cluster: '8-Node Reference (aggregate)', get: '~103.5 GB/s', put: '~34.4 GB/s', note: '4.4 PB usable; encryption negligible overhead' },
+                  { cluster: 'Scale-out', get: 'Linear with nodes', put: 'Linear with nodes', note: 'Switch fabric supports growth (up to 32 nodes)' },
                 ].map((row) => (
                   <div key={row.cluster} className="bg-gray-50 rounded-xl p-4">
                     <div className="font-semibold text-gray-900 text-sm mb-2">{row.cluster}</div>
@@ -1271,7 +1271,7 @@ export default function Compare() {
             {[
               {
                 title: 'Training: Storage Is the Critical Path',
-                description: 'From PB-scale ingestion (165 GiB/s PUT) through Medallion ELT, 325 GiB/s DataLoader streaming, TB-scale checkpoints with erasure coding, to model export with Object Lock — storage throughput directly impacts GPU utilization. Every idle GPU-minute costs $30-50 on a 1,000-GPU cluster.',
+                description: 'From PB-scale ingestion through Medallion ELT, high-throughput DataLoader streaming (~103.5 GB/s aggregate GET on an 8-node reference, scaling with nodes), TB-scale checkpoints with erasure coding, to model export with Object Lock — storage throughput directly impacts GPU utilization. Idle GPU time is expensive, so keeping the cluster fed is the whole game.',
                 gradient: 'from-raspberry to-raspberry-dark',
                 shadow: 'shadow-raspberry/20',
               },
@@ -1283,13 +1283,13 @@ export default function Compare() {
               },
               {
                 title: 'Fine-Tuning: Same Patterns, 5,000x Smaller',
-                description: 'LoRA adapters are ~100MB vs 500GB full checkpoints. Same S3 patterns — datasets, registry, checkpoints — at dramatically smaller scale. 46.5 GB/s GET on an 8-node cluster is more than sufficient. The killer feature is adapter versioning via MinIO Catalog.',
+                description: 'LoRA adapters are ~100MB vs 500GB full checkpoints. Same S3 patterns — datasets, registry, checkpoints — at dramatically smaller scale. An 8-node reference cluster (~103.5 GB/s aggregate GET) is far more than sufficient. The killer feature is adapter versioning via MinIO Catalog.',
                 gradient: 'from-blue-500 to-blue-600',
                 shadow: 'shadow-blue-500/20',
               },
               {
                 title: 'Inference: Active Tier for Agentic AI',
-                description: 'Short requests stay in VRAM. But for agentic and long-context workloads, KV cache pages overflow to NVIDIA CMX G3.5 — MinIO AIStor running natively on BlueField-4 within the NVIDIA STX rack at sub-ms RDMA via Spectrum-X 800 GbE. 5× tokens/sec vs KV eviction. Plus model loading (325 GiB/s burst), adapter swaps (MinIO Cache), logging (ILM), and RLHF feedback (Object Lock). Storage spans the full inference lifecycle.',
+                description: 'Short requests stay in GPU HBM. But for agentic and long-context workloads, the KV cache lives in the G3.5 context-memory layer — MinIO MemKV moves it GPU→NVMe over RDMA via Spectrum-X 800 GbE, with no file system, no object protocol, and no CPU in the data path, instead of evicting and recomputing. Plus model loading (high-throughput burst), adapter swaps (MinIO Cache), logging (ILM), and RLHF feedback (Object Lock). Storage spans the full inference lifecycle.',
                 gradient: 'from-teal-500 to-cyan-600',
                 shadow: 'shadow-cyan-500/20',
               },
@@ -1312,12 +1312,13 @@ export default function Compare() {
         </section>
 
         <BottomLine>
-          Object storage is in every pipeline, at every phase, for every workload. With NVIDIA CMX™ G3.5,
-          MinIO AIStor on BlueField-4 is now inside the inference loop itself — providing KV-cache overflow
-          for agentic and long-context workloads at sub-ms RDMA via Spectrum-X 800 GbE (5× tokens/sec vs eviction).
-          All benchmark numbers cross-referenced with the MinIO whitepaper:
-          325 GiB/s GET, 165 GiB/s PUT (32-node), 2.5 TiB/s (300-server), 46.5 GB/s GET (8-node).
-          MinIO AIStor spans G3.5 through Tier 3 — the complete storage foundation for AI infrastructure.
+          Object storage is in every pipeline, at every phase, for every workload. With the G3.5 context-memory
+          layer, MinIO MemKV is now inside the inference loop itself — keeping the KV cache resident for agentic
+          and long-context workloads (GPU→NVMe over RDMA via Spectrum-X 800 GbE, no CPU in the data path).
+          Reference numbers cross-referenced with the MinIO source of truth: ~103.5 GB/s aggregate GET on an
+          8-node reference cluster (~12.9 GB/s/node, 4.4 PB usable), scaling linearly with node count.
+          MinIO spans the G3.5 context-memory layer and the storage-agnostic ILM tiers (T0–T3) — the complete
+          storage foundation for AI infrastructure.
         </BottomLine>
       </div>
     </div>
