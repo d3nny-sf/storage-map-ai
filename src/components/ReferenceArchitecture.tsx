@@ -462,10 +462,11 @@ function PipelineView({
             <button
               key={phase.id}
               onClick={() => onSelectPhase(selectedPhase?.id === phase.id ? null : phase)}
-              className={`relative text-left p-4 rounded-xl border-2 transition-all ${
+              style={{ ['--i' as string]: idx }}
+              className={`stagger-item relative text-left p-4 rounded-xl border-2 transition-all ${
                 selectedPhase?.id === phase.id
                   ? 'border-white/50 bg-white/10 scale-[1.02]'
-                  : 'border-white/10 bg-gray-800/30 hover:border-white/30 hover:bg-gray-800/50'
+                  : 'border-white/10 bg-gray-800/30 hover:border-white/30 hover:bg-gray-800/50 hover:-translate-y-1'
               }`}
             >
               {/* Tier Indicator */}
@@ -493,7 +494,7 @@ function PipelineView({
         </div>
 
         {/* Detail Dock — sticky right-rail on desktop, modal on mobile */}
-        <DetailDock open={!!selectedPhase} onClose={() => onSelectPhase(null)}>
+        <DetailDock open={!!selectedPhase} onClose={() => onSelectPhase(null)} contentKey={selectedPhase?.id}>
           {selectedPhase && (
             <div className="bg-gray-900/95 lg:bg-gray-800/50 rounded-2xl border border-white/10 shadow-2xl p-6">
               <div className="flex items-start justify-between mb-4">

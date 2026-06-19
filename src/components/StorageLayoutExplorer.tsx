@@ -498,10 +498,11 @@ export default function StorageLayoutExplorer() {
         <div>
         {/* Tier Cards - compact, natural-height columns (no equal-height void) */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8 items-start">
-          {storageTiers.map((tier) => (
+          {storageTiers.map((tier, i) => (
             <TierCard
               key={tier.id}
               tier={tier}
+              index={i}
               isSelected={selectedTier?.id === tier.id}
               isHighlighted={highlightedTiers.includes(tier.tier)}
               isDimmed={highlightedTiers.length > 0 && !highlightedTiers.includes(tier.tier)}
@@ -587,7 +588,11 @@ export default function StorageLayoutExplorer() {
         </div>
 
         {/* Detail Dock — sticky right-rail on desktop, modal on mobile */}
-        <DetailDock open={!!(selectedTier || selectedComponent)} onClose={handleClose}>
+        <DetailDock
+          open={!!(selectedTier || selectedComponent)}
+          onClose={handleClose}
+          contentKey={selectedComponent?.id ?? selectedTier?.id}
+        >
           <DetailPanel
             tier={selectedTier}
             component={selectedComponent}
@@ -636,6 +641,7 @@ export default function StorageLayoutExplorer() {
 
 interface TierCardProps {
   tier: StorageTier
+  index: number
   isSelected: boolean
   isHighlighted: boolean
   isDimmed: boolean
@@ -643,19 +649,20 @@ interface TierCardProps {
   onComponentClick: (comp: ComponentInfo) => void
 }
 
-function TierCard({ tier, isSelected, isHighlighted, isDimmed, onClick, onComponentClick }: TierCardProps) {
+function TierCard({ tier, index, isSelected, isHighlighted, isDimmed, onClick, onComponentClick }: TierCardProps) {
   return (
     <div
-      className={`relative rounded-xl border-2 transition-all duration-300 cursor-pointer ${
+      className={`stagger-item relative rounded-xl border-2 transition-all duration-300 cursor-pointer ${
         isSelected
           ? 'border-white/50 shadow-lg scale-[1.02]'
           : isHighlighted
             ? 'border-white/40 shadow-lg scale-[1.02]'
             : isDimmed
               ? 'border-white/5 opacity-30 scale-[0.98]'
-              : 'border-white/10 hover:border-white/30'
+              : 'border-white/10 hover:border-white/30 hover:-translate-y-1'
       }`}
       style={{ 
+        ['--i' as string]: index,
         background: `linear-gradient(135deg, ${tier.color}${isHighlighted ? '25' : '15'} 0%, transparent 100%)`,
         borderColor: isSelected ? tier.color : isHighlighted ? `${tier.color}90` : undefined,
         boxShadow: isHighlighted ? `0 0 20px ${tier.color}30` : undefined,
@@ -718,7 +725,7 @@ function TierCard({ tier, isSelected, isHighlighted, isDimmed, onClick, onCompon
           >
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm text-white font-medium leading-snug">{comp.shortName}</span>
-              <svg className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="nudge-x w-4 h-4 text-gray-500 group-hover:text-white transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
