@@ -80,7 +80,7 @@ const glossaryTerms: GlossaryTerm[] = [
   {
     term: 'KV Cache',
     definition: 'The key-value cache in transformer attention that stores computed attention states from previous tokens. Grows linearly with sequence length and lives entirely in GPU VRAM during inference.',
-    context: 'For a 70B model with 128K context, KV cache can consume tens of GB of VRAM per sequence. This is Tier 0 (NVMe block / VRAM) — not MinIO AIStor.',
+    context: 'For a 70B model with 128K context, KV cache can consume tens of GB of GPU HBM per sequence. Hot pages live in HBM; when context exceeds HBM, the KV cache lives at the G3.5 context-memory layer (MinIO MemKV), not in object storage.',
     relatedTerms: ['Attention', 'VRAM', 'Inference'],
     category: 'ai-ml',
   },
@@ -238,7 +238,7 @@ const glossaryTerms: GlossaryTerm[] = [
   {
     term: 'GPU-Direct Storage (GDS)',
     definition: 'A technology allowing direct data transfer between storage and GPU memory, bypassing the CPU. Used for Tier 0 NVMe block I/O with cuFile. Not S3 — raw block access.',
-    context: 'GDS via cuFile loads model weights directly to H200 VRAM over PCIe 5/6. This is Tier 0 — MinIO AIStor starts at Tier 1 (S3 API).',
+    context: 'GDS via cuFile loads model weights directly to GPU HBM over PCIe 5/6. In the ILM lens, this is Tier 0 (NVMe local bus / Direct-Attach) — MinIO DirectPV provisions those drives for Kubernetes; the S3 API path starts at Tier 1.',
     relatedTerms: ['NVMe', 'VRAM', 'Tier 0'],
     category: 'storage',
   },
@@ -252,7 +252,7 @@ const glossaryTerms: GlossaryTerm[] = [
   {
     term: 'NVMe (Non-Volatile Memory Express)',
     definition: 'A high-speed storage interface that connects directly to the CPU/GPU via PCIe. Provides the lowest latency storage tier (<100us) for shuffle, KV cache, and vector indexes.',
-    context: 'Tier 0 = local NVMe block (NOT MinIO AIStor). Tier 1 = MinIO AIStor on local NVMe via S3 API. Tier 2 = MinIO AIStor over RDMA to remote NVMe.',
+    context: 'In the storage-agnostic ILM lens: Tier 0 = NVMe local bus / Direct-Attach (MinIO DirectPV for K8s). Tier 1 = RDMA → S3 to 100% NVMe. Tier 2 = Standard S3 (100G) to 100% NVMe. Tier 3 = Standard S3 (25G/100G) to SSD or hybrid SSD/HDD (cold).',
     relatedTerms: ['Tier 0', 'Tier 1', 'PCIe', 'GDS'],
     category: 'storage',
   },

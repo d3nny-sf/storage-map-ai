@@ -29,7 +29,7 @@ const pathGroups: PathGroup[] = [
     ),
     color: 'from-raspberry to-raspberry-dark',
     tier: 2,
-    storageFeature: 'S3 Tables (Iceberg) with ACID transactions, time travel, schema evolution; 165 GiB/s PUT on 32-node cluster',
+    storageFeature: 'S3 Tables (native Iceberg) with ACID transactions, time travel, schema evolution; ~34.4 GB/s PUT on an 8-node reference cluster, scaling with node count',
     paperRef: 'Whitepaper: "S3 compatible" with Spark, Presto/Trino, Hive; supports Iceberg/Delta/Hudi table formats',
     paths: [
       { path: 's3://data-lake/raw/common-crawl/', purpose: 'Unprocessed Common Crawl data (Bronze layer)', workloads: ['Training'], ioProfile: 'Sequential writes', volume: 'Petabytes' },
@@ -37,7 +37,7 @@ const pathGroups: PathGroup[] = [
       { path: 's3://data-lake/raw/web-scrapes/', purpose: 'Web-scraped text, images, structured data', workloads: ['Training'], ioProfile: 'Continuous writes', volume: 'TBs' },
       { path: 's3://lakehouse/bronze/{source}/{date}/', purpose: 'Raw ingested data — immutable landing zone', workloads: ['Training'], ioProfile: 'Write-once, read-many', volume: 'Petabytes' },
       { path: 's3://lakehouse/silver/cleaned-deduped/', purpose: 'Deduplicated and toxicity-filtered data (30-50% reduction)', workloads: ['Training'], ioProfile: 'Batch R/W', volume: 'Terabytes' },
-      { path: 's3://lakehouse/gold/tokenized-shards/', purpose: 'Pre-tokenized shards ready for DataLoader (WebDataset/Mosaic)', workloads: ['Training'], ioProfile: 'Sequential reads at 325 GiB/s', volume: 'Terabytes' },
+      { path: 's3://lakehouse/gold/tokenized-shards/', purpose: 'Pre-tokenized shards ready for DataLoader (WebDataset/Mosaic)', workloads: ['Training'], ioProfile: 'Sequential reads at high aggregate GET (~103.5 GB/s, 8-node reference)', volume: 'Terabytes' },
       { path: 's3://lakehouse/gold/tokenized-shards/shard-{00000..99999}.tar', purpose: 'Individual WebDataset shard files', workloads: ['Training'], ioProfile: 'Streaming reads', volume: 'GBs each' },
     ],
   },
@@ -94,7 +94,7 @@ const pathGroups: PathGroup[] = [
     paperRef: 'Whitepaper: "Object Lock" with retention/legal hold, SEC 17a-4(f), FINRA 4511(c); "MinIO Catalog" GraphQL metadata search',
     paths: [
       { path: 's3://model-registry/{model-name}/{version}/', purpose: 'Base model version directory (safetensors, config, tokenizer)', workloads: ['Training', 'Fine-Tuning', 'Inference'], ioProfile: 'Large seq. write / burst read', volume: '16-140 GB' },
-      { path: 's3://model-registry/{model-name}/{version}/model.safetensors', purpose: 'Model weights in safetensors format', workloads: ['Training', 'Inference'], ioProfile: 'Large burst read at 325 GiB/s', volume: '16-140 GB' },
+      { path: 's3://model-registry/{model-name}/{version}/model.safetensors', purpose: 'Model weights in safetensors format', workloads: ['Training', 'Inference'], ioProfile: 'Large burst read at high aggregate GET (~103.5 GB/s, 8-node reference)', volume: '16-140 GB' },
       { path: 's3://model-registry/{model-name}/{version}/config.json', purpose: 'Model architecture configuration', workloads: ['Training', 'Fine-Tuning', 'Inference'], ioProfile: 'Small reads', volume: 'KBs' },
       { path: 's3://model-registry/{model-name}/{version}/tokenizer.json', purpose: 'Tokenizer vocabulary and rules', workloads: ['Training', 'Inference'], ioProfile: 'Small reads', volume: 'MBs' },
       { path: 's3://model-registry/{model-name}/adapters/{adapter-name}/{version}/', purpose: 'LoRA adapter version directory', workloads: ['Fine-Tuning', 'Inference'], ioProfile: 'Small seq. write / burst read', volume: '50-500 MB' },
@@ -479,12 +479,12 @@ export default function Paths() {
                 ),
                 color: 'from-raspberry to-raspberry-dark',
                 items: [
-                  'Use WebDataset shard prefixes for parallel DataLoader reads at 325 GiB/s',
+                  'Use WebDataset shard prefixes for parallel DataLoader reads at high aggregate GET (~103.5 GB/s, 8-node reference)',
                   'Multipart upload for TB-scale checkpoints (parallel streams)',
                   'S3 Select on Parquet/CSV for log analytics — 80%+ bandwidth reduction',
                   'MinIO Cache (DRAM) for hot-path model and adapter reads',
                 ],
-                paperRef: 'Whitepaper: "S3 Select" with SIMD; "MinIO Cache" DRAM; 325 GiB/s GET benchmark',
+                paperRef: 'Source of truth (minio-core-v2): "S3 Select" with SIMD; "MinIO Cache" DRAM; 8-node reference ~103.5 GB/s aggregate GET',
               },
               {
                 title: 'Replication & DR',
@@ -554,7 +554,7 @@ export default function Paths() {
 from minio import Minio
 client = Minio("minio.ai-cluster.local:9000", access_key="...", secret_key="...")
 
-# Download model weights (325 GiB/s GET at cluster scale)
+# Download model weights (~103.5 GB/s aggregate GET on an 8-node reference cluster)
 client.fget_object("model-registry",
     "llama-3-70b/v1.0/model.safetensors",
     "/local/nvme/model.safetensors")
