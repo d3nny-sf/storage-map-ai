@@ -375,6 +375,7 @@ export default function StorageLayoutExplorer() {
   const [selectedComponent, setSelectedComponent] = useState<ComponentInfo | null>(null)
   const [showLakehouseInfo, setShowLakehouseInfo] = useState(false)
   const [activeSoftware, setActiveSoftware] = useState<string | null>(null)
+  const [showInsights, setShowInsights] = useState(false)
 
   // Which tier numbers are highlighted by the active software pill
   const highlightedTiers = useMemo<number[]>(() => {
@@ -543,46 +544,82 @@ export default function StorageLayoutExplorer() {
           </div>
         </div>
 
-        {/* Key Insight */}
-        <div className="bg-gradient-to-r from-teal-500/10 to-transparent border border-teal-500/20 rounded-xl p-4 mb-4">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-teal-500/20 flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        {/* Storage insights — collapsible so the long-form context never pushes the tiers below the fold */}
+        <div className="rounded-xl border border-white/10 bg-white/[0.02]">
+          <button
+            onClick={() => setShowInsights((v) => !v)}
+            aria-expanded={showInsights}
+            className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left group"
+          >
+            <span className="flex items-center gap-2.5 min-w-0">
+              <span className="w-7 h-7 rounded-lg bg-teal-500/20 flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </span>
+              <span className="text-sm font-semibold text-white truncate">
+                Storage insights
+                <span className="ml-2 font-normal text-gray-500 hidden sm:inline">The G3.5 layer &amp; the two-lens model</span>
+              </span>
+            </span>
+            <span className="flex items-center gap-2 flex-shrink-0">
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-full transition-colors ${showInsights ? 'bg-teal-500/20 text-teal-300' : 'bg-white/5 text-gray-400 group-hover:text-white'}`}>
+                {showInsights ? 'Hide' : 'Show'}
+              </span>
+              <svg
+                className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${showInsights ? 'rotate-180' : ''}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-teal-400 mb-1">NEW: The G3.5 Layer — MinIO MemKV Brings Context Memory to Inference</h4>
-              <p className="text-sm text-gray-400">
-                <strong className="text-white">The G3.5 layer sits between GPU HBM and object storage</strong>, and
-                <strong className="text-white"> MinIO MemKV</strong> is purpose-built for it. KV cache moves from GPU memory to shared
-                NVMe over RDMA — no file system, no object protocol, no CPU in the data path — so GPUs decode instead of recomputing
-                context they already processed. It runs inside NVIDIA STX as a single ARM64-native binary and sustains 95%+ GPU utilization
-                cluster-wide, letting agentic and long-context workloads run at 100× scale with consistent latency.
-              </p>
-            </div>
-          </div>
-        </div>
+            </span>
+          </button>
 
-        <div className="bg-gradient-to-r from-emerald-500/10 to-transparent border border-emerald-500/20 rounded-xl p-4">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+          {showInsights && (
+            <div className="px-4 pb-4 space-y-4 animate-slide-down">
+              {/* Key Insight */}
+              <div className="bg-gradient-to-r from-teal-500/10 to-transparent border border-teal-500/20 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-teal-500/20 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-teal-400 mb-1">NEW: The G3.5 Layer — MinIO MemKV Brings Context Memory to Inference</h4>
+                    <p className="text-sm text-gray-400">
+                      <strong className="text-white">The G3.5 layer sits between GPU HBM and object storage</strong>, and
+                      <strong className="text-white"> MinIO MemKV</strong> is purpose-built for it. KV cache moves from GPU memory to shared
+                      NVMe over RDMA — no file system, no object protocol, no CPU in the data path — so GPUs decode instead of recomputing
+                      context they already processed. It runs inside NVIDIA STX as a single ARM64-native binary and sustains 95%+ GPU utilization
+                      cluster-wide, letting agentic and long-context workloads run at 100× scale with consistent latency.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-emerald-500/10 to-transparent border border-emerald-500/20 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-emerald-400 mb-1">Two Lenses, Not One Stack</h4>
+                    <p className="text-sm text-gray-400">
+                      There are two ways to slice this, and they don't mash into a single ladder.
+                      <strong className="text-teal-400"> NVIDIA's GPU-memory hierarchy</strong> names the inference-side layers: <strong className="text-white">G3.5</strong> is
+                      where <strong className="text-white">MinIO MemKV</strong> lives (shared NVMe context memory over RDMA), and <strong className="text-white">G4.0</strong> is networked S3/RDMA
+                      object storage. <strong className="text-emerald-300"> The storage-agnostic ILM view</strong> is the lifecycle MinIO AIStor manages:
+                      <strong className="text-white"> Tier 0</strong> direct-attach NVMe (DirectPV), <strong className="text-white">Tier 1</strong> RDMA→S3 on all-NVMe,
+                      <strong className="text-white"> Tier 2</strong> standard S3 (100G) on all-NVMe, and <strong className="text-white">Tier 3</strong> standard S3 (25G/100G) on SSD or hybrid SSD/HDD.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <h4 className="text-sm font-semibold text-emerald-400 mb-1">Two Lenses, Not One Stack</h4>
-              <p className="text-sm text-gray-400">
-                There are two ways to slice this, and they don't mash into a single ladder.
-                <strong className="text-teal-400"> NVIDIA's GPU-memory hierarchy</strong> names the inference-side layers: <strong className="text-white">G3.5</strong> is
-                where <strong className="text-white">MinIO MemKV</strong> lives (shared NVMe context memory over RDMA), and <strong className="text-white">G4.0</strong> is networked S3/RDMA
-                object storage. <strong className="text-emerald-300"> The storage-agnostic ILM view</strong> is the lifecycle MinIO AIStor manages:
-                <strong className="text-white"> Tier 0</strong> direct-attach NVMe (DirectPV), <strong className="text-white">Tier 1</strong> RDMA→S3 on all-NVMe,
-                <strong className="text-white"> Tier 2</strong> standard S3 (100G) on all-NVMe, and <strong className="text-white">Tier 3</strong> standard S3 (25G/100G) on SSD or hybrid SSD/HDD.
-              </p>
-            </div>
-          </div>
+          )}
         </div>
         {/* end left column */}
         </div>
@@ -652,7 +689,7 @@ interface TierCardProps {
 function TierCard({ tier, index, isSelected, isHighlighted, isDimmed, onClick, onComponentClick }: TierCardProps) {
   return (
     <div
-      className={`stagger-item relative rounded-xl border-2 transition-all duration-300 cursor-pointer ${
+      className={`stagger-item self-start h-fit relative rounded-xl border-2 transition-all duration-300 cursor-pointer ${
         isSelected
           ? 'border-white/50 shadow-lg scale-[1.02]'
           : isHighlighted
@@ -712,8 +749,8 @@ function TierCard({ tier, index, isSelected, isHighlighted, isDimmed, onClick, o
         </div>
       </div>
 
-      {/* Components */}
-      <div className="p-3 space-y-1.5">
+      {/* Components — flex column with fixed gap so tiles always pack tight (never distribute) */}
+      <div className="p-3 flex flex-col gap-1.5">
         {tier.components.map((comp) => (
           <button
             key={comp.id}
