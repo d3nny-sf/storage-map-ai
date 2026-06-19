@@ -83,8 +83,8 @@ const storageTiers: StorageTier[] = [
   {
     id: 'tier-0',
     tier: 0,
-    name: 'Raw Block / GDS',
-    subtitle: 'NVMe Local (Block)',
+    name: 'Raw Block / Direct-Attach',
+    subtitle: 'NVMe local bus / Direct-Attach (MinIO DirectPV / K8s)',
     capacity: 'Node-Local (TBs)',
     latency: '<100μs',
     isMinIO: false,
@@ -185,14 +185,14 @@ const storageTiers: StorageTier[] = [
   {
     id: 'tier-1',
     tier: 1,
-    name: 'Hot S3 (In-Cluster)',
-    subtitle: 'NVMe Local (PVC / S3)',
+    name: 'RDMA → S3 to 100% NVMe',
+    subtitle: 'S3 over RDMA to all-NVMe nodes',
     capacity: '100s TB+',
     latency: '1-5ms',
     isMinIO: true,
     color: '#C72C48', // MinIO Raspberry
-    description: 'MinIO AIStor Pod running IN-CLUSTER on local NVMe. Operational S3 for active workloads — NOT capacity tier.',
-    accessMethod: 'S3 API (http://minio-local.ai-ns)',
+    description: 'MinIO AIStor on all-NVMe nodes, served over S3 with RDMA transport. Operational, latency-sensitive S3 for active workloads — the hot lifecycle tier.',
+    accessMethod: 'S3 over RDMA (RoCE v2) to 100% NVMe',
     components: [
       {
         id: 'pytorch-dataloader',
@@ -244,8 +244,8 @@ const storageTiers: StorageTier[] = [
   {
     id: 'tier-2',
     tier: 2,
-    name: 'Warm S3 (MinIO AIStor)',
-    subtitle: 'Fastest S3 over RDMA — 800 GbE Spectrum-X',
+    name: 'Standard S3 → 100% NVMe',
+    subtitle: 'Standard S3 (100G) to all-NVMe nodes',
     capacity: 'PB+',
     latency: '5-15ms',
     isMinIO: true,
@@ -306,13 +306,13 @@ const storageTiers: StorageTier[] = [
     id: 'tier-3',
     tier: 3,
     name: 'Cold Archive',
-    subtitle: 'S3 to NVMe/SSD — 100GbE (SSD Recommended)',
+    subtitle: 'Standard S3 (25G/100G) to SSD or hybrid SSD/HDD',
     capacity: 'EB+',
     latency: '15-50ms',
     isMinIO: true,
     color: '#6B7280', // Gray
     description: 'MinIO AIStor with Object Lock. S3 to NVMe/SSD over 100GbE. 7-year retention, WORM compliance, immutable audit trails.',
-    accessMethod: 'S3 w/ Object Lock + ILM (100GbE)',
+    accessMethod: 'Standard S3 (25G/100G) w/ Object Lock + ILM — SSD or hybrid SSD/HDD',
     components: [
       {
         id: 'trustyai-logs',
@@ -569,11 +569,14 @@ export default function StorageLayoutExplorer() {
               </svg>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-emerald-400 mb-1">The Tier Hierarchy</h4>
+              <h4 className="text-sm font-semibold text-emerald-400 mb-1">Two Lenses, Not One Stack</h4>
               <p className="text-sm text-gray-400">
-                <strong className="text-white">Tier 0 is NOT MinIO.</strong> It's raw block I/O — NVMe direct to GPU via GDS. 
-                <strong className="text-teal-400">The G3.5 layer is where MinIO MemKV lives</strong> — a petascale, flash-backed KV pool over RDMA. 
-                MinIO AIStor then spans Tier 1 (hot S3), Tier 2 (capacity/lakehouse), and Tier 3 (compliance archive) as the G4 object-storage layer.
+                There are two ways to slice this, and they don't mash into a single ladder.
+                <strong className="text-teal-400"> NVIDIA's GPU-memory hierarchy</strong> names the inference-side layers: <strong className="text-white">G3.5</strong> is
+                where <strong className="text-white">MinIO MemKV</strong> lives (shared NVMe context memory over RDMA), and <strong className="text-white">G4.0</strong> is networked S3/RDMA
+                object storage. <strong className="text-emerald-300"> The storage-agnostic ILM view</strong> is the lifecycle MinIO AIStor manages:
+                <strong className="text-white"> Tier 0</strong> direct-attach NVMe (DirectPV), <strong className="text-white">Tier 1</strong> RDMA→S3 on all-NVMe,
+                <strong className="text-white"> Tier 2</strong> standard S3 (100G) on all-NVMe, and <strong className="text-white">Tier 3</strong> standard S3 (25G/100G) on SSD or hybrid SSD/HDD.
               </p>
             </div>
           </div>
