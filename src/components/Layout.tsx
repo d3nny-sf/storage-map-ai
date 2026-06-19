@@ -167,7 +167,7 @@ export default function Layout() {
               </h3>
               <ul className="space-y-3">
                 {[
-                  { to: '/explorer?view=training', label: 'Model Training' },
+                  { to: '/explorer?view=training', label: 'Frontier Model Training' },
                   { to: '/explorer?view=rag', label: 'RAG Pipelines' },
                   { to: '/explorer?view=fine-tuning', label: 'Fine-Tuning (LoRA)' },
                   { to: '/explorer?view=inference', label: 'Inference' },
