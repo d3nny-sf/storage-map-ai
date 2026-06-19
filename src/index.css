@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
-/* MinIO-inspired color theme */
+/* MinIO-inspired color theme — refreshed to align with minio-core-v2 palette */
 @theme {
-  /* Primary Colors */
-  --color-raspberry: #C72C48;
-  --color-raspberry-dark: #A02038;
-  --color-raspberry-light: #E84A66;
+  /* Primary Colors — brighter MinIO red (#E91A45) for punchier accent */
+  --color-raspberry: #E91A45;
+  --color-raspberry-dark: #C01337;
+  --color-raspberry-light: #FF6B8A;
   
   /* Neutrals */
   --color-dark: #1D1D1D;
@@ -28,9 +28,20 @@
   --color-not-in-path: #6b7280;
   
   /* Accent Colors */
-  --color-success: #10B981;
+  --color-success: #22C55E;
   --color-warning: #F59E0B;
   --color-info: #3B82F6;
+
+  /* minio-core-v2 accent family — used by step rail, primer & glow washes */
+  --color-accent-blue: #0655F7;
+  --color-accent-blue-light: #60A5FA;
+  --color-accent-purple: #914FDB;
+  --color-accent-purple-light: #C084FC;
+  --color-accent-green: #22C55E;
+  --color-accent-amber: #F59E0B;
+  --color-accent-cyan: #14B8A6;
+  --color-nvidia: #76B900;
+  --color-nvidia-light: #A3D44A;
   
   /* Animation timing */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -79,8 +90,8 @@
 }
 
 @keyframes border-glow {
-  0%, 100% { box-shadow: 0 0 5px rgba(199, 44, 72, 0.3); }
-  50% { box-shadow: 0 0 20px rgba(199, 44, 72, 0.6); }
+  0%, 100% { box-shadow: 0 0 5px rgba(233, 26, 69, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(233, 26, 69, 0.6); }
 }
 
 @keyframes spin-slow {
@@ -213,20 +224,58 @@ pre code {
 
 .card-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(199, 44, 72, 0.08);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(233, 26, 69, 0.08);
 }
 
 /* Glow effects */
 .glow-raspberry {
-  box-shadow: 0 0 20px rgba(199, 44, 72, 0.3);
+  box-shadow: 0 0 24px rgba(233, 26, 69, 0.35);
 }
 
 .glow-blue {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 24px rgba(6, 85, 247, 0.30);
 }
 
 .glow-green {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 24px rgba(34, 197, 94, 0.30);
+}
+
+.glow-purple {
+  box-shadow: 0 0 24px rgba(145, 79, 219, 0.30);
+}
+
+/* ===== minio-core-v2-inspired premium surfaces ===== */
+
+/* Radial-glow hero wash — layered on dark headers for cinematic depth */
+.glow-wash {
+  position: relative;
+  overflow: hidden;
+}
+.glow-wash::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 900px 600px at 75% 35%, rgba(233, 26, 69, 0.12) 0%, transparent 65%),
+    radial-gradient(ellipse 520px 400px at 8% 85%, rgba(6, 85, 247, 0.07) 0%, transparent 60%);
+  pointer-events: none;
+}
+.glow-wash > * { position: relative; z-index: 1; }
+
+/* Glassmorphic floating nav rail (Spectrum-X inspired) */
+.glass-rail {
+  background: rgba(8, 8, 16, 0.82);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+/* Animated shimmer progress bar for the guided sequence */
+.shimmer-bar {
+  background: linear-gradient(90deg, var(--color-raspberry), var(--color-raspberry-light), var(--color-raspberry));
+  background-size: 200% 100%;
+  animation: shimmer 2.5s linear infinite;
 }
 
 /* Animation utilities */
@@ -269,13 +318,13 @@ pre code {
 /* Button styles */
 .btn-primary {
   background: linear-gradient(135deg, var(--color-raspberry) 0%, var(--color-raspberry-dark) 100%);
-  box-shadow: 0 4px 14px rgba(199, 44, 72, 0.4);
+  box-shadow: 0 4px 14px rgba(233, 26, 69, 0.4);
   transition: all 0.3s var(--ease-smooth);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(199, 44, 72, 0.5);
+  box-shadow: 0 6px 20px rgba(233, 26, 69, 0.5);
 }
 
 .btn-secondary {
@@ -293,19 +342,19 @@ pre code {
 /* Section dividers */
 .section-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(199, 44, 72, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(233, 26, 69, 0.3), transparent);
 }
 
 /* Decorative patterns */
 .pattern-dots {
-  background-image: radial-gradient(rgba(199, 44, 72, 0.15) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(233, 26, 69, 0.15) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
 .pattern-grid {
   background-image: 
-    linear-gradient(rgba(199, 44, 72, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(199, 44, 72, 0.05) 1px, transparent 1px);
+    linear-gradient(rgba(233, 26, 69, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(233, 26, 69, 0.05) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
@@ -326,7 +375,7 @@ th {
 }
 
 tr:hover td {
-  background-color: rgba(199, 44, 72, 0.04);
+  background-color: rgba(233, 26, 69, 0.04);
 }
 
 /* Badge styles */
@@ -351,7 +400,7 @@ input[type="search"] {
 input[type="text"]:focus,
 input[type="search"]:focus {
   border-color: var(--color-raspberry);
-  box-shadow: 0 0 0 4px rgba(199, 44, 72, 0.1);
+  box-shadow: 0 0 0 4px rgba(233, 26, 69, 0.1);
 }
 
 /* Hero decorative elements */
