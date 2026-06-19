@@ -117,69 +117,69 @@ const storageTiers: StorageTier[] = [
         tier: 0,
         description: 'Model weights loaded via GDS + KV cache hot pages pinned in GPU VRAM',
         storageUse: 'Bulk weight load via cuFile, then VRAM-resident KV cache hot pages',
-        ioPattern: 'One-time bulk load → persistent VRAM residency; spills to G3.5',
+        ioPattern: 'One-time bulk load → persistent VRAM residency; overflows to G3.5',
       },
     ],
     details: [
-      'This is NOT MinIO AIStor — pure block I/O',
+      'This is NOT MinIO — pure block I/O',
       'GPU-Direct Storage (GDS) via cuFile',
       'Sub-100μs P99 latency required',
       'Ephemeral - not durable storage',
       'PVCs for StatefulSets (Weaviate)',
-      'PCIe 5/6 direct to Rubin VRAM',
-      'KV cache hot pages; cold pages overflow to NVIDIA CMX G3.5',
+      'PCIe Gen6 direct to GPU HBM',
+      'KV cache hot pages; overflow moves to the G3.5 layer (MinIO MemKV)',
     ],
   },
   {
     id: 'tier-g35',
     tier: 0.5 as unknown as number,
-    name: 'NVIDIA CMX™ Context Memory (G3.5)',
-    subtitle: 'BlueField-4 NVMe — Ethernet-attached Flash (800 GbE)',
-    capacity: 'PBs per GPU Pod',
-    latency: '<500μs (RDMA)',
+    name: 'MinIO MemKV — Context Memory (G3.5)',
+    subtitle: 'Shared NVMe over RDMA — the G3.5 layer of the GPU memory hierarchy',
+    capacity: 'Petascale per inference cluster',
+    latency: 'Microsecond (RDMA)',
     isMinIO: true,
     color: '#0891B2', // Teal/Cyan
-    description: 'NVIDIA CMX™ — the KV-cache overflow tier for agentic and long-context inference. MinIO AIStor runs natively on BlueField-4 within the STX rack, providing S3-compatible context-memory storage via Spectrum-X 800 GbE RDMA.',
-    accessMethod: 'RDMA via NIXL / Dynamo / Grove over Spectrum-X 800 GbE',
+    description: 'MinIO MemKV is purpose-built for the G3.5 layer — the memory tier between GPU HBM and object storage. KV cache moves from GPU memory to shared NVMe over RDMA, bypassing the file system and object protocols entirely, with no CPU in the data path. Runs inside NVIDIA STX as a single ARM64-native binary embedded in the storage tier.',
+    accessMethod: 'RDMA over Spectrum-X 800 GbE — no file system, no object protocol, no CPU in the path',
     components: [
       {
         id: 'kv-overflow',
-        name: 'KV Cache Overflow',
-        shortName: 'KV Cache Overflow',
+        name: 'KV Cache Pool',
+        shortName: 'KV Cache Pool',
         tier: 0.5 as unknown as number,
-        description: 'When GPU HBM fills, KV cache pages spill to BlueField-4 NVMe flash at sub-ms latency — 5× higher tokens/sec vs eviction',
-        storageUse: 'Transient KV cache pages evicted from GPU VRAM under memory pressure',
-        ioPattern: 'Sub-ms random R/W, RDMA, latency-critical — AI-native data class',
+        description: 'A petascale, flash-backed KV pool at the correct layer of the memory hierarchy — virtually eliminating redundant prefill computation instead of evicting cache or starving the model',
+        storageUse: 'Shared KV cache parked on NVMe so GPUs decode instead of recomputing context they already processed',
+        ioPattern: 'RDMA, 2–16 MB blocks tuned for GPU access patterns (not legacy 4 KB)',
       },
       {
         id: 'agentic-context',
-        name: 'Agentic Context Persistence',
-        shortName: 'Agentic Context Persistence',
+        name: 'Agentic & Long-Context Sessions',
+        shortName: 'Agentic & Long-Context',
         tier: 0.5 as unknown as number,
-        description: 'Long-running agent sessions maintain multi-million-token context across tool calls without re-prefill',
-        storageUse: 'Shared KV state persisted across agentic reasoning steps',
+        description: 'Multi-step agentic tasks that previously needed prohibitive GPU memory run at 100× scale with consistent response times — long-context workloads become viable in production',
+        storageUse: 'Shared context memory reused across reasoning steps and across the cluster',
         ioPattern: 'Write-once per prefill, read-many per generation step',
       },
       {
-        id: 'nixl-grove',
-        name: 'NIXL / Grove KV Orchestration',
-        shortName: 'NIXL / Grove Orchestration',
+        id: 'independent-scaling',
+        name: 'Independent Scaling',
+        shortName: 'Independent Scaling',
         tier: 0.5 as unknown as number,
-        description: 'NVIDIA Dynamo runtime with NIXL transfer library and Grove distributed KV cache manager',
-        storageUse: 'Orchestration layer mapping KV pages across VRAM ↔ NVIDIA CMX ↔ AIStor tiers',
-        ioPattern: 'Control plane: metadata lookups; data plane: zero-copy RDMA transfers',
+        description: 'Scale GPU compute and shared context memory independently — add KV cache capacity without provisioning more GPU nodes, and vice versa',
+        storageUse: 'Petabytes of G3.5 KV cache deployed across the inference cluster',
+        ioPattern: 'Spectrum-X 800 GbE + PCIe Gen6, driven to near wire speed',
       },
     ],
     details: [
-      'MinIO AIStor running natively on NVIDIA BlueField-4',
-      'Part of NVIDIA STX rack-scale AI architecture',
-      'Bridges GPU HBM (G1) and enterprise storage (G4)',
-      'Up to 5× tokens-per-second vs KV eviction',
-      'Up to 5× better power efficiency',
-      'Spectrum-X 800 GbE RDMA for sub-ms latency',
-      'Treats KV cache as transient AI-native data class',
-      'PBs of shared capacity per GPU pod',
-      'Eliminates unnecessary durability overhead for ephemeral KV data',
+      'MinIO MemKV — a single ARM64-native binary embedded in NVIDIA STX',
+      'Built for the G3.5 layer between GPU HBM (G3) and object storage (G4)',
+      'KV cache GPU → NVMe over RDMA — no file system, no object protocol, no CPU in the path',
+      '2–16 MB blocks tuned for throughput-oriented GPU access',
+      'Built for NVIDIA Spectrum-X 800 GbE and PCIe Gen6 — near wire speed',
+      'Sustains 95%+ GPU utilization cluster-wide (not a single-node peak)',
+      'Agentic / long-context workloads run at 100× scale with consistent latency',
+      'Petascale shared KV pool across the entire serving infrastructure',
+      'GPU compute and context memory scale independently',
     ],
   },
   {
@@ -250,7 +250,7 @@ const storageTiers: StorageTier[] = [
     latency: '5-15ms',
     isMinIO: true,
     color: '#F59E0B', // Amber
-    description: 'MinIO AIStor — the fastest and most efficient S3 over RDMA implementation. 5× the performance of legacy architectures. THE capacity tier: Data Lake, Lakehouse, Medallion architecture. AIStor Tables (native Iceberg V3), Delta Sharing, ClickHouse analytics backend. 800 GbE Spectrum-X RoCE v2.',
+    description: 'MinIO AIStor — high-performance S3 over RDMA delivering GPUDirect transfers straight into GPU HBM. THE capacity tier: Data Lake, Lakehouse, Medallion architecture. AIStor Tables (native Iceberg), Delta Sharing, ClickHouse analytics backend. 800 GbE Spectrum-X RoCE v2.',
     accessMethod: 'S3 over RDMA / RoCE v2 (800 GbE Spectrum-X)',
     components: [
       {
@@ -411,7 +411,7 @@ export default function StorageLayoutExplorer() {
             <h3 className="text-xl font-bold text-white flex items-center gap-3">
               <span className="w-3 h-3 rounded-full bg-raspberry animate-pulse" />
               AI Storage Layout
-              <span className="text-sm font-normal text-gray-400">— The 5-Tier Architecture (incl. NVIDIA CMX G3.5)</span>
+              <span className="text-sm font-normal text-gray-400">— The 5-Tier Architecture (incl. the G3.5 layer · MinIO MemKV)</span>
             </h3>
             <p className="text-sm text-gray-400 mt-1">Click any tier or component to explore details</p>
           </div>
@@ -549,11 +549,13 @@ export default function StorageLayoutExplorer() {
               </svg>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-teal-400 mb-1">NEW: NVIDIA CMX™ G3.5 — Storage Enters the Inference Loop</h4>
+              <h4 className="text-sm font-semibold text-teal-400 mb-1">NEW: The G3.5 Layer — MinIO MemKV Brings Context Memory to Inference</h4>
               <p className="text-sm text-gray-400">
-                <strong className="text-white">NVIDIA CMX™ introduces a new G3.5 tier</strong> between GPU HBM and enterprise storage. 
-                MinIO AIStor runs natively on BlueField-4 within the STX rack, providing KV-cache overflow for agentic and long-context 
-                inference at sub-millisecond latency over Spectrum-X 800 GbE RDMA. Up to 5× tokens-per-second vs KV eviction.
+                <strong className="text-white">The G3.5 layer sits between GPU HBM and object storage</strong>, and
+                <strong className="text-white"> MinIO MemKV</strong> is purpose-built for it. KV cache moves from GPU memory to shared
+                NVMe over RDMA — no file system, no object protocol, no CPU in the data path — so GPUs decode instead of recomputing
+                context they already processed. It runs inside NVIDIA STX as a single ARM64-native binary and sustains 95%+ GPU utilization
+                cluster-wide, letting agentic and long-context workloads run at 100× scale with consistent latency.
               </p>
             </div>
           </div>
@@ -569,9 +571,9 @@ export default function StorageLayoutExplorer() {
             <div>
               <h4 className="text-sm font-semibold text-emerald-400 mb-1">The Tier Hierarchy</h4>
               <p className="text-sm text-gray-400">
-                <strong className="text-white">Tier 0 is NOT MinIO AIStor.</strong> It's raw block I/O — NVMe direct to GPU via GDS. 
-                <strong className="text-teal-400">NVIDIA CMX G3.5 is the new flash tier</strong> where MinIO AIStor runs on BlueField-4 for KV-cache overflow. 
-                MinIO AIStor then spans Tier 1 (hot S3), Tier 2 (capacity/lakehouse), and Tier 3 (compliance archive).
+                <strong className="text-white">Tier 0 is NOT MinIO.</strong> It's raw block I/O — NVMe direct to GPU via GDS. 
+                <strong className="text-teal-400">The G3.5 layer is where MinIO MemKV lives</strong> — a petascale, flash-backed KV pool over RDMA. 
+                MinIO AIStor then spans Tier 1 (hot S3), Tier 2 (capacity/lakehouse), and Tier 3 (compliance archive) as the G4 object-storage layer.
               </p>
             </div>
           </div>
@@ -601,7 +603,7 @@ export default function StorageLayoutExplorer() {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded" style={{ backgroundColor: '#0891B2' }} />
-            <span className="text-gray-400">G3.5: NVIDIA CMX Context Memory (MinIO AIStor on BF-4)</span>
+            <span className="text-gray-400">G3.5: Context Memory (MinIO MemKV · shared NVMe over RDMA)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded bg-raspberry" />
