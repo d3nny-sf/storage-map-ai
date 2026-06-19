@@ -529,7 +529,7 @@ export default function InteractiveTrainingExplorer() {
           <div>
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-raspberry animate-pulse" />
-              Interactive Training Pipeline
+              Interactive Frontier Model Training Pipeline
             </h3>
             <p className="text-sm text-gray-400 mt-1">Click any node to explore details</p>
           </div>
