@@ -32,96 +32,92 @@ export default function Explorer() {
     setSearchParams(view === 'reference' ? {} : { view })
   }
 
-  const views: { id: ViewType; name: string; description: string; available: boolean; badge?: string; stepColor?: string }[] = [
-    { 
-      id: 'reference', 
-      name: 'Reference Architecture', 
-      description: 'Prescriptive Guide',
-      available: true,
-      badge: 'START HERE',
-      stepColor: '#10B981',
-    },
-    { 
-      id: 'storage-layout', 
-      name: 'Storage Tiers', 
-      description: 'ILM tiers + the G3.5 layer',
-      available: true,
-      stepColor: '#8B5CF6',
-    },
-    { 
-      id: 'training', 
-      name: 'Training Pipeline', 
-      description: 'Pre-training data flow',
-      available: true,
-    },
-    { 
-      id: 'rag', 
-      name: 'RAG Pipeline', 
-      description: 'Retrieval-augmented generation',
-      available: true,
-    },
-    { 
-      id: 'fine-tuning', 
-      name: 'Fine-Tuning', 
-      description: 'LoRA & adapter training',
-      available: true,
-    },
-    { 
-      id: 'inference', 
-      name: 'Inference', 
-      description: 'Model serving & generation',
-      available: true,
-    },
+  // Single source of truth for the guided sequence.
+  // ORDER (locked): Reference -> Storage Tiers -> Frontier Training -> Fine-Tuning -> RAG -> Inference
+  const views: { id: ViewType; name: string; description: string }[] = [
+    { id: 'reference',      name: 'Reference Architecture', description: 'Start here — the prescriptive guide' },
+    { id: 'storage-layout', name: 'Storage Tiers',          description: 'ILM tiers + the G3.5 layer' },
+    { id: 'training',       name: 'Frontier Model Training', description: 'Pretraining data flow at scale' },
+    { id: 'fine-tuning',    name: 'Fine-Tuning',            description: 'LoRA & adapter training' },
+    { id: 'rag',            name: 'RAG Pipeline',           description: 'Retrieval-augmented generation' },
+    { id: 'inference',      name: 'Inference',              description: 'Model serving & generation' },
   ]
+
+  const currentIndex = views.findIndex(v => v.id === activeView)
+  const totalSteps = views.length
+  const prevView = currentIndex > 0 ? views[currentIndex - 1] : null
+  const nextView = currentIndex < totalSteps - 1 ? views[currentIndex + 1] : null
+  const progressPct = ((currentIndex + 1) / totalSteps) * 100
 
   return (
     <div>
       <PageHeader
-        title="AI Training Reference Architecture"
-        subtitle="Prescriptive Guide"
-        description="A prescriptive guide to AI storage. ONE stack, clear tiers, step-by-step pipeline. Built for storage veterans learning AI infrastructure."
+        title="AI Storage Reference Architecture"
+        subtitle="A Guided Sequence"
+        description="A prescriptive, step-by-step walk through AI storage: ONE stack, clear tiers, every workload. Built for storage veterans learning AI infrastructure — follow the numbered path or jump to any step."
       >
-        {/* View Selector */}
-        <div className="flex flex-wrap gap-3 mt-8">
-          {views.map(view => (
-            <button
-              key={view.id}
-              onClick={() => view.available && handleViewChange(view.id)}
-              disabled={!view.available}
-              className={`relative px-5 py-3 rounded-xl font-medium text-sm transition-all ${
-                activeView === view.id
-                  ? 'bg-raspberry text-white shadow-lg shadow-raspberry/30'
-                  : view.available
-                    ? 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
-                    : 'bg-gray-800/50 text-gray-500 cursor-not-allowed border border-gray-700'
-              }`}
-            >
-              <span className="block font-semibold">{view.name}</span>
-              <span className="block text-xs opacity-70 mt-0.5">{view.description}</span>
-              
-              {view.badge && (
-                <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full shadow-lg" style={{ boxShadow: '0 0 8px rgba(16,185,129,0.5)' }}>
-                  {view.badge}
-                </span>
-              )}
+        {/* Guided step rail */}
+        <div className="mt-8">
+          {/* Progress bar */}
+          <div className="flex items-center gap-3 mb-5">
+            <span className="text-xs font-semibold text-gray-400 tabular-nums whitespace-nowrap">
+              STEP {currentIndex + 1} <span className="text-gray-600">/ {totalSteps}</span>
+            </span>
+            <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full shimmer-bar rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+          </div>
 
-              {/* Color-coded step indicator for guided path */}
-              {view.stepColor && !view.badge && (
-                <span
-                  className="absolute -top-2 -right-2 px-2 py-0.5 text-white text-[10px] font-bold rounded-full animate-pulse shadow-lg"
-                  style={{ backgroundColor: view.stepColor, boxShadow: `0 0 8px ${view.stepColor}60` }}
+          {/* Numbered step chips */}
+          <div className="flex flex-wrap gap-2.5">
+            {views.map((view, index) => {
+              const isActive = activeView === view.id
+              const isVisited = index < currentIndex
+              return (
+                <button
+                  key={view.id}
+                  onClick={() => handleViewChange(view.id)}
+                  aria-current={isActive ? 'step' : undefined}
+                  className={`group relative flex items-center gap-3 pl-2.5 pr-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${
+                    isActive
+                      ? 'bg-raspberry text-white shadow-lg shadow-raspberry/40 scale-[1.02]'
+                      : 'bg-white/8 text-gray-200 hover:bg-white/15 border border-white/15 hover:border-white/25'
+                  }`}
                 >
-                  NEXT
-                </span>
-              )}
-              
-              {!view.available && (
-                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-gray-700 text-gray-400 text-[10px] rounded-full">
-                  Coming Soon
-                </span>
-              )}
-            </button>
-          ))}
+                  {/* Step number badge */}
+                  <span
+                    className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold transition-all ${
+                      isActive
+                        ? 'bg-white text-raspberry'
+                        : isVisited
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-white/15 text-gray-300 group-hover:bg-white/25'
+                    }`}
+                  >
+                    {isVisited ? (
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      index + 1
+                    )}
+                  </span>
+                  <span className="text-left">
+                    <span className="block font-semibold leading-tight">{view.name}</span>
+                    <span className={`block text-xs mt-0.5 ${isActive ? 'text-white/70' : 'opacity-60'}`}>{view.description}</span>
+                  </span>
+                  {index === 0 && currentIndex === 0 && (
+                    <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full shadow-lg" style={{ boxShadow: '0 0 8px rgba(34,197,94,0.6)' }}>
+                      START HERE
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </PageHeader>
 
@@ -629,6 +625,51 @@ export default function Explorer() {
             </>
           )}
         </section>
+
+        {/* Guided sequence — Prev / Next navigation */}
+        <nav className="flex items-stretch justify-between gap-4 border-t border-gray-200 pt-8 mt-4">
+          {prevView ? (
+            <button
+              onClick={() => handleViewChange(prevView.id)}
+              className="group flex items-center gap-3 px-5 py-4 rounded-xl bg-white border border-gray-200 hover:border-raspberry/40 hover:shadow-lg transition-all text-left max-w-[48%]"
+            >
+              <svg className="w-5 h-5 text-gray-400 group-hover:text-raspberry transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="min-w-0">
+                <span className="block text-xs font-medium text-gray-400 uppercase tracking-wide">Previous</span>
+                <span className="block font-semibold text-gray-900 truncate">{prevView.name}</span>
+              </span>
+            </button>
+          ) : (
+            <span className="max-w-[48%]" />
+          )}
+
+          {nextView ? (
+            <button
+              onClick={() => handleViewChange(nextView.id)}
+              className="group flex items-center gap-3 px-5 py-4 rounded-xl bg-raspberry text-white border border-raspberry hover:bg-raspberry-dark hover:shadow-lg hover:shadow-raspberry/30 transition-all text-right max-w-[48%] ml-auto"
+            >
+              <span className="min-w-0">
+                <span className="block text-xs font-medium text-white/70 uppercase tracking-wide">Next — Step {currentIndex + 2} of {totalSteps}</span>
+                <span className="block font-semibold truncate">{nextView.name}</span>
+              </span>
+              <svg className="w-5 h-5 text-white/80 group-hover:translate-x-0.5 transition-transform flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          ) : (
+            <div className="flex items-center gap-3 px-5 py-4 rounded-xl bg-emerald-50 border border-emerald-200 text-right max-w-[48%] ml-auto">
+              <span>
+                <span className="block text-xs font-medium text-emerald-600 uppercase tracking-wide">Sequence complete</span>
+                <span className="block font-semibold text-emerald-800">You've walked the whole stack</span>
+              </span>
+              <svg className="w-6 h-6 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          )}
+        </nav>
 
       </div>
     </div>

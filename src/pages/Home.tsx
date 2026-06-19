@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 const pipelines = [
   {
     id: 'training',
-    title: 'Model Training',
-    subtitle: 'Pre-Training from Scratch',
-    description: 'Building foundation models from raw data. Petabytes in, terabytes of checkpoints out. Storage is in the critical path from minute one.',
+    title: 'Frontier Model Training',
+    subtitle: 'Pretraining from Scratch',
+    description: 'Building frontier foundation models from raw data. Petabytes in, terabytes of checkpoints out. Storage is in the critical path from minute one.',
     intensity: 'critical',
     path: '/explorer?view=training',
     icon: (
