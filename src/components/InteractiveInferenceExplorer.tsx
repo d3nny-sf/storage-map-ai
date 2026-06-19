@@ -12,7 +12,7 @@ interface NodeData {
   y: number
   width: number
   height: number
-  type: 'storage' | 'compute' | 'process' | 'cmx'
+  type: 'storage' | 'compute' | 'process' | 'memkv'
   role: 'primary' | 'buffered' | 'burst' | 'not-in-path' | 'active-tier'
   description: string
   details: string[]
@@ -39,12 +39,13 @@ interface FlowPath {
   description: string
 }
 
-// Inference Pipeline:
-// Model Registry → Model Loading → GPU Inference Loop (with NVIDIA CMX G3.5 KV overflow) → Logging → Feedback → (back to Fine-Tuning)
+// Inference Pipeline (NVIDIA memory-hierarchy lens):
+// Model Registry → Model Loading → GPU Inference Loop (with MemKV G3.5 context memory) → Logging → Feedback → (back to Fine-Tuning)
 //
-// Key insight: For agentic/long-context workloads, KV cache overflows GPU VRAM into
-// NVIDIA CMX G3.5 — BlueField-4 NVMe flash at sub-ms latency. MinIO AIStor runs
-// natively on BF-4 within the STX rack. Storage is NOW inside the inference loop.
+// Key insight: For agentic/long-context workloads, the KV cache moves out of GPU HBM (G3)
+// into the G3.5 context-memory layer — MinIO MemKV: KV cache GPU→NVMe over RDMA, no file
+// system, no object protocol, no CPU in the data path. Spectrum-X 800 GbE near wire speed.
+// In this lens, storage is NOW inside the inference loop.
 const nodes: NodeData[] = [
   {
     id: 'model-registry',
@@ -73,9 +74,9 @@ const nodes: NodeData[] = [
       pattern: 'Large sequential read on cold start',
       volume: '16-140 GB per model load',
       throughput: 'Burst — want 10+ GB/s for fast cold start',
-      metric: 'Read throughput (time-to-first-token)',
+      metric: 'Read throughput (faster cold start)',
     },
-    minioFeature: '325 GiB/s GET (32-node benchmark): 140GB model loads in <1s at cluster scale. Whitepaper: 2.5 TiB/s aggregate on 300-server deployment',
+    minioFeature: 'On an 8-node AIStor reference cluster (~103.5 GB/s aggregate GET, ~12.9 GB/s/node), a 140GB model loads in roughly a second. Throughput scales linearly with node count.',
     dataVolume: 'GB',
     phase: 1,
   },
@@ -122,65 +123,65 @@ const nodes: NodeData[] = [
     height: 340,
     type: 'compute',
     role: 'active-tier',
-    description: 'The generation loop — prompt in, tokens out. Short requests run in VRAM; agentic/long-context workloads spill KV cache to NVIDIA CMX G3.5 (BlueField-4 NVMe).',
+    description: 'The generation loop — prompt in, tokens out. Short requests run in HBM; agentic/long-context workloads keep the KV cache in the G3.5 context-memory layer (MinIO MemKV) instead of evicting and recomputing it.',
     details: [
-      'Model weights loaded into VRAM at startup (one-time)',
-      'KV cache hot pages in GPU HBM (VRAM)',
-      'KV cache cold pages overflow to NVIDIA CMX G3.5 under memory pressure',
-      'NVIDIA CMX G3.5: BlueField-4 NVMe at sub-ms RDMA via Spectrum-X 800 GbE',
-      'NIXL + Grove orchestrate KV page movement across tiers',
+      'Model weights loaded into HBM at startup (one-time)',
+      'KV cache hot pages in GPU HBM (G3)',
+      'When context exceeds HBM, KV cache lives in the G3.5 layer (MinIO MemKV)',
+      'MemKV moves KV cache GPU→NVMe over RDMA — no file system, no object protocol',
+      'No CPU in the data path; NIXL plugin + Dynamo/KVBM orchestrate page movement',
       'Forward pass: attention + FFN layers = matrix math',
-      'Up to 5× tokens/sec vs KV eviction for long-context workloads',
+      'Keeps long-context sessions resident instead of evicting and recomputing',
       'Continuous batching: multiple requests share GPU time',
     ],
     s3Paths: [
-      '# Short requests: KV stays in VRAM (no storage I/O)',
-      '# Long-context / agentic: KV spills to NVIDIA CMX G3.5',
-      '# MinIO AIStor on BlueField-4 serves KV overflow',
-      '# NIXL zero-copy RDMA transfers',
+      '# Short requests: KV stays in GPU HBM (no G3.5 layer needed)',
+      '# Long-context / agentic: KV cache resides in the G3.5 layer (MinIO MemKV)',
+      '# MemKV: KV cache GPU→NVMe over RDMA, no CPU in the data path',
+      '# NIXL plugin handles zero-copy RDMA transfers',
     ],
     ioProfile: {
-      pattern: 'KV cache overflow to NVIDIA CMX G3.5 on long-context',
+      pattern: 'KV cache resident in G3.5 context memory on long-context',
       volume: 'GBs-TBs of KV state per session',
-      throughput: 'Sub-ms RDMA via Spectrum-X 800 GbE',
-      metric: 'Tokens/second (5× with NVIDIA CMX vs eviction)',
+      throughput: 'Microsecond RDMA via Spectrum-X 800 GbE',
+      metric: 'Sustained 95%+ GPU utilization cluster-wide',
     },
     dataVolume: 'GB-TB',
     phase: 2,
   },
   {
-    id: 'cmx-context-memory',
-    name: 'NVIDIA CMX™ Context Memory (G3.5)',
-    shortName: 'NVIDIA CMX G3.5',
+    id: 'memkv-context-memory',
+    name: 'MinIO MemKV — Context Memory (G3.5)',
+    shortName: 'MinIO MemKV G3.5',
     x: 420,
     y: 470,
     width: 280,
     height: 140,
-    type: 'cmx',
+    type: 'memkv',
     role: 'active-tier',
-    description: 'NVIDIA CMX™ — BlueField-4 NVMe flash tier for KV-cache overflow. MinIO AIStor runs natively on BF-4, providing sub-ms context memory for agentic AI.',
+    description: 'The G3.5 context-memory layer between GPU HBM (G3) and networked object storage (G4). MinIO MemKV moves KV cache GPU→NVMe over RDMA — no file system, no object protocol, no CPU in the data path.',
     details: [
-      'KV cache pages spill from VRAM when memory pressure exceeds threshold',
-      'BlueField-4 DPU with NVMe flash — sub-500μs P99 latency',
-      'MinIO AIStor runs natively on BF-4 ARM cores',
-      'Spectrum-X 800 GbE RDMA for zero-copy transfers',
-      'NIXL transfer library + Grove distributed KV manager',
-      'PBs of shared capacity per GPU pod',
-      'Treats KV cache as transient AI-native data class',
-      'Eliminates unnecessary durability overhead',
+      'When context length exceeds HBM, the KV cache lives here instead of being recomputed',
+      'KV cache moves GPU→NVMe over RDMA at microsecond latency',
+      'No file system, no object protocol, no CPU in the data path',
+      'Large 2–16 MB blocks (vs legacy 4 KB) keep the path near wire speed',
+      'Single ARM64-native binary inside the NVIDIA STX rack',
+      'NIXL plugin + Dynamo/KVBM integration; petascale shared pool',
+      'Compute and memory scale independently',
+      'Sustains 95%+ GPU utilization cluster-wide',
     ],
     s3Paths: [
-      's3://cmx-kv-cache/{session-id}/kv-pages/',
-      '# Managed by NIXL / Grove — not direct S3 API',
-      '# Transient: no long-term retention needed',
+      '# KV cache pages held in the G3.5 context-memory pool',
+      '# Moved GPU→NVMe over RDMA via the NIXL plugin — not the S3 API',
+      '# Purpose-built KV path: no file system, no object protocol',
     ],
     ioProfile: {
-      pattern: 'Random R/W, sub-ms RDMA, latency-critical',
+      pattern: 'Random R/W, microsecond RDMA, latency-critical',
       volume: 'GBs-TBs per agentic session',
-      throughput: 'Saturates 800 GbE per BF-4 DPU',
-      metric: '5× tokens/sec vs eviction; 5× power efficiency',
+      throughput: 'Spectrum-X 800 GbE + PCIe Gen6 near wire speed',
+      metric: 'Sustained 95%+ GPU utilization cluster-wide',
     },
-    minioFeature: 'MinIO AIStor runs natively on BlueField-4 within the NVIDIA STX rack. Single <200 MB binary, ARM/SVE optimized, zero-copy NVMe-to-GPU transfers, GPUDirect RDMA (tech preview).',
+    minioFeature: 'MinIO MemKV is a single ARM64-native binary that runs inside the NVIDIA STX rack. It moves KV cache GPU→NVMe over RDMA with no file system, no object protocol, and no CPU in the data path — enabling ~100× scale for agentic and long-context workloads.',
     dataVolume: 'TB',
     phase: 2,
   },
@@ -295,7 +296,7 @@ const flowPaths: FlowPath[] = [
     dataVolume: 'heavy',
     direction: 'right',
     animated: true,
-    description: 'Model weights loaded from S3 into GPU VRAM on cold start',
+    description: 'Model weights loaded from S3 into GPU HBM on cold start',
   },
   {
     id: 'adapter-to-engine',
@@ -308,14 +309,14 @@ const flowPaths: FlowPath[] = [
     description: 'LoRA adapter hot-swapped per request or tenant',
   },
   {
-    id: 'engine-to-cmx',
+    id: 'engine-to-memkv',
     from: 'inference-engine',
-    to: 'cmx-context-memory',
-    label: 'KV overflow (sub-ms)',
+    to: 'memkv-context-memory',
+    label: 'KV cache (RDMA)',
     dataVolume: 'heavy',
     direction: 'down',
     animated: true,
-    description: 'KV cache pages spill to NVIDIA CMX G3.5 (BlueField-4 NVMe) when VRAM pressure exceeds threshold — RDMA via Spectrum-X 800 GbE',
+    description: 'On long-context / agentic workloads the KV cache resides in the G3.5 layer (MinIO MemKV) — moved GPU→NVMe over RDMA via Spectrum-X 800 GbE, no CPU in the data path',
   },
   {
     id: 'engine-to-logging',
@@ -360,8 +361,8 @@ const flowPaths: FlowPath[] = [
 ]
 
 const phases = [
-  { id: 1, name: 'Model Loading', description: 'Weights + adapters from S3 → GPU VRAM' },
-  { id: 2, name: 'Inference Loop + NVIDIA CMX', description: 'Generation with KV overflow to G3.5' },
+  { id: 1, name: 'Model Loading', description: 'Weights + adapters from S3 → GPU HBM' },
+  { id: 2, name: 'Inference Loop + MemKV', description: 'Generation with KV cache resident in the G3.5 layer' },
   { id: 3, name: 'Logging & Feedback', description: 'Every request logged + user feedback stored' },
   { id: 4, name: 'Model Updates', description: 'A/B tests, canary rollouts, rollbacks' },
 ]
@@ -489,14 +490,14 @@ export default function InteractiveInferenceExplorer() {
           <pattern id="infGrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#374151" strokeWidth="0.5" opacity="0.3"/></pattern>
           <rect width="100%" height="100%" fill="url(#infGrid)" />
 
-          {/* THE KEY CALLOUT — NVIDIA CMX G3.5 active tier */}
+          {/* THE KEY CALLOUT — MemKV G3.5 active tier */}
           <g>
             <rect x="420" y="650" width="280" height="55" rx="8" fill="#164E63" stroke="#22D3EE" strokeWidth="2" />
             <text x="560" y="675" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">
-              NVIDIA CMX G3.5: Storage IS in the inference loop
+              MemKV G3.5: Storage IS in the inference loop
             </text>
             <text x="560" y="692" textAnchor="middle" fill="#22D3EE" fontSize="10">
-              KV cache overflow to BlueField-4 NVMe — 5× tokens/sec
+              KV cache GPU→NVMe over RDMA — no CPU in the data path
             </text>
           </g>
 
@@ -518,13 +519,13 @@ export default function InteractiveInferenceExplorer() {
                 <text x={gpuNode.x + 20} y={gpuNode.y + 24} textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">{gpuNode.phase}</text>
                 <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + 22} textAnchor="middle" fill="white" fontSize="13" fontWeight="600" dx="10">vLLM / Triton</text>
 
-                {/* NVIDIA CMX ACTIVE TIER banner */}
+                {/* MemKV ACTIVE TIER banner */}
                 <rect x={gpuNode.x + 25} y={gpuNode.y + 40} width={gpuNode.width - 50} height="26" rx="6" fill="#0891B2" />
-                <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + 57} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">NVIDIA CMX G3.5 KV OVERFLOW ACTIVE</text>
+                <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + 57} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">MEMKV G3.5 CONTEXT MEMORY ACTIVE</text>
 
-                {/* GPU VRAM sub-box */}
+                {/* GPU HBM sub-box */}
                 <rect x={gpuNode.x + 15} y={gpuNode.y + 78} width={gpuNode.width - 30} height="130" rx="8" fill="#1F2937" stroke="#34D399" strokeWidth="1" />
-                <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + 97} textAnchor="middle" fill="#34D399" fontSize="11" fontWeight="600">GPU MEMORY (VRAM) + NVIDIA CMX G3.5</text>
+                <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + 97} textAnchor="middle" fill="#34D399" fontSize="11" fontWeight="600">GPU HBM (G3) + MemKV G3.5</text>
 
                 {/* Components in GPU */}
                 <rect x={gpuNode.x + 25} y={gpuNode.y + 107} width={115} height="40" rx="4" fill="#374151" />
@@ -533,7 +534,7 @@ export default function InteractiveInferenceExplorer() {
 
                 <rect x={gpuNode.x + 150} y={gpuNode.y + 107} width={115} height="40" rx="4" fill="#374151" />
                 <text x={gpuNode.x + 207} y={gpuNode.y + 125} textAnchor="middle" fill="#9CA3AF" fontSize="9">KV Cache</text>
-                <text x={gpuNode.x + 207} y={gpuNode.y + 138} textAnchor="middle" fill="#22D3EE" fontSize="8">(VRAM + NVIDIA CMX overflow)</text>
+                <text x={gpuNode.x + 207} y={gpuNode.y + 138} textAnchor="middle" fill="#22D3EE" fontSize="8">(HBM + MemKV G3.5)</text>
 
                 <rect x={gpuNode.x + 25} y={gpuNode.y + 155} width={240} height="30" rx="4" fill="#374151" />
                 <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + 174} textAnchor="middle" fill="#9CA3AF" fontSize="9">Compute: Attention + FFN + Sampling</text>
@@ -556,7 +557,7 @@ export default function InteractiveInferenceExplorer() {
 
                 {/* Role badge */}
                 <rect x={gpuNode.x + 10} y={gpuNode.y + gpuNode.height - 30} width={gpuNode.width - 20} height="22" rx="4" fill="#0891B2" opacity={0.9} />
-                <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + gpuNode.height - 14} textAnchor="middle" fill="white" fontSize="10" fontWeight="600">ACTIVE TIER — NVIDIA CMX G3.5 KV OVERFLOW</text>
+                <text x={gpuNode.x + gpuNode.width / 2} y={gpuNode.y + gpuNode.height - 14} textAnchor="middle" fill="white" fontSize="10" fontWeight="600">ACTIVE TIER — MEMKV G3.5 CONTEXT MEMORY</text>
 
                 {/* Click indicator */}
                 {hoveredNode === gpuNode.id && (
@@ -607,13 +608,13 @@ export default function InteractiveInferenceExplorer() {
             )
           })}
 
-          {/* Non-GPU Nodes (including NVIDIA CMX) */}
+          {/* Non-GPU Nodes (including MemKV) */}
           {nodes.filter(n => n.id !== 'inference-engine').map(node => {
             const colors = roleColors[node.role]
             const isActive = node.phase <= currentPhase
             const isHovered = hoveredNode === node.id
             const isSelected = selectedNode?.id === node.id
-            const gradientId = node.type === 'cmx' ? 'infCmxGrad' : 'infStorageGrad'
+            const gradientId = node.type === 'memkv' ? 'infCmxGrad' : 'infStorageGrad'
             return (
               <g key={node.id} className="cursor-pointer" style={{ opacity: isActive ? 1 : 0.4 }}
                 onClick={() => handleNodeClick(node)} onMouseEnter={() => setHoveredNode(node.id)} onMouseLeave={() => setHoveredNode(null)}>
@@ -624,7 +625,7 @@ export default function InteractiveInferenceExplorer() {
                 <text x={node.x + node.width / 2} y={node.y + 22} textAnchor="middle" fill="white" fontSize="13" fontWeight="600" dx="10">{node.shortName}</text>
                 <rect x={node.x + 10} y={node.y + node.height - 35} width={node.width - 20} height="22" rx="4" fill={colors.fill} opacity={0.9} />
                 <text x={node.x + node.width / 2} y={node.y + node.height - 19} textAnchor="middle" fill="white" fontSize="10" fontWeight="600" letterSpacing="0.05em">
-                  {node.role === 'burst' ? 'BURST READ' : node.role === 'active-tier' ? 'ACTIVE TIER (NVIDIA CMX)' : node.role.toUpperCase()}
+                  {node.role === 'burst' ? 'BURST READ' : node.role === 'active-tier' ? 'ACTIVE TIER (MEMKV G3.5)' : node.role.toUpperCase()}
                 </text>
                 <foreignObject x={node.x + 10} y={node.y + 36} width={node.width - 20} height={node.height - 80}>
                   <div className="text-[11px] text-gray-400 leading-snug overflow-hidden">{node.description.slice(0, 100)}...</div>
@@ -650,7 +651,7 @@ export default function InteractiveInferenceExplorer() {
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold mb-2 ${roleColors[selectedNode.role].bg} text-white`}>
-                    {selectedNode.role === 'not-in-path' ? 'COMPUTE ONLY' : selectedNode.role === 'burst' ? 'BURST READ' : selectedNode.role === 'active-tier' ? 'ACTIVE TIER (NVIDIA CMX G3.5)' : selectedNode.role.toUpperCase()}
+                    {selectedNode.role === 'not-in-path' ? 'COMPUTE ONLY' : selectedNode.role === 'burst' ? 'BURST READ' : selectedNode.role === 'active-tier' ? 'ACTIVE TIER (MEMKV G3.5)' : selectedNode.role.toUpperCase()}
                   </div>
                   <h3 className="text-xl font-bold text-white">{selectedNode.name}</h3>
                   <p className="text-sm text-gray-400 mt-1">{selectedNode.description}</p>
@@ -695,8 +696,8 @@ export default function InteractiveInferenceExplorer() {
         <div className="flex flex-wrap items-center justify-center gap-6">
           <div className="flex items-center gap-2"><div className="w-4 h-4 rounded bg-gradient-to-r from-blue-500 to-blue-600" /><span className="text-xs text-gray-400">Burst Read (Model Load)</span></div>
           <div className="flex items-center gap-2"><div className="w-4 h-4 rounded bg-gradient-to-r from-raspberry to-raspberry-dark" /><span className="text-xs text-gray-400">Primary Storage</span></div>
-          <div className="flex items-center gap-2"><div className="w-4 h-4 rounded bg-gradient-to-r from-teal-500 to-cyan-600" /><span className="text-xs text-gray-400">Active Tier (NVIDIA CMX G3.5)</span></div>
-          <div className="flex items-center gap-2 pl-4 border-l border-gray-700"><span className="text-xs text-cyan-400 font-semibold">Key:</span><span className="text-xs text-gray-400">KV cache overflows to NVIDIA CMX G3.5 on long-context / agentic workloads</span></div>
+          <div className="flex items-center gap-2"><div className="w-4 h-4 rounded bg-gradient-to-r from-teal-500 to-cyan-600" /><span className="text-xs text-gray-400">Active Tier (MemKV G3.5)</span></div>
+          <div className="flex items-center gap-2 pl-4 border-l border-gray-700"><span className="text-xs text-cyan-400 font-semibold">Key:</span><span className="text-xs text-gray-400">KV cache resides in the G3.5 layer (MinIO MemKV) on long-context / agentic workloads</span></div>
         </div>
       </div>
     </div>
