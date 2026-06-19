@@ -7,6 +7,7 @@ import InteractiveFineTuningExplorer from '../components/InteractiveFineTuningEx
 import InteractiveInferenceExplorer from '../components/InteractiveInferenceExplorer'
 import StorageLayoutExplorer from '../components/StorageLayoutExplorer'
 import ReferenceArchitecture from '../components/ReferenceArchitecture'
+import AiMlDlPrimer from '../components/AiMlDlPrimer'
 
 type ViewType = 'reference' | 'storage-layout' | 'training' | 'rag' | 'fine-tuning' | 'inference'
 
@@ -137,7 +138,12 @@ export default function Explorer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Main Explorer */}
         <section className="mb-12">
-          {activeView === 'reference' && <ReferenceArchitecture />}
+          {activeView === 'reference' && (
+            <>
+              <AiMlDlPrimer />
+              <ReferenceArchitecture />
+            </>
+          )}
           {activeView === 'storage-layout' && <StorageLayoutExplorer />}
           
           {activeView === 'training' && (
