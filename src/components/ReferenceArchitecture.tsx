@@ -19,6 +19,7 @@ const STACK = {
   mlops: { primary: 'MLflow', alts: ['Kubeflow', 'W&B'] },
   vectorDb: { primary: 'Weaviate', alts: ['Milvus', 'Pinecone', 'pgvector'] },
   serving: { primary: 'vLLM + NVIDIA Dynamo', alts: ['TensorRT-LLM', 'Triton'] },
+  contextMemory: { primary: 'MinIO MemKV (G3.5)', alts: ['(NVIDIA STX context-memory layer)'] },
   storage: { primary: 'MinIO AIStor', alts: ['(This is non-negotiable)'] },
 }
 
@@ -47,7 +48,7 @@ const PIPELINE_PHASES: PipelinePhase[] = [
     dataVolume: 'Petabytes',
     latencyReq: '5-15ms OK (batch)',
     minioRole: 'Data Lake Foundation',
-    metaComparison: 'META: Tectonic distributed FS. You: MinIO AIStor. Whitepaper: 165 GiB/s PUT (32-node), 2.5 TiB/s (300-server).',
+    metaComparison: 'META: Tectonic distributed FS. You: MinIO AIStor. Source of truth: 8-node reference cluster ~34.4 GB/s PUT, scaling linearly with node count.',
   },
   {
     id: 'elt',
@@ -79,11 +80,11 @@ const PIPELINE_PHASES: PipelinePhase[] = [
     description: 'PyTorch DataLoader pulls tokenized shards to GPUs. Sustained throughput.',
     storageOperation: 'READ Gold shards → GPU memory',
     tier: 1,
-    ioPattern: 'Sequential reads, prefetch, 325 GiB/s',
+    ioPattern: 'Sequential reads, prefetch, high aggregate GET',
     dataVolume: 'Continuous stream',
     latencyReq: '1-5ms (throughput > latency)',
     minioRole: 'Hot S3 Cache + MinIO Cache (DRAM)',
-    metaComparison: 'META: 16 TB/s to 16K GPUs. You: 325 GiB/s GET (32-node benchmark). Whitepaper: MinIO Cache prevents GPU starvation.',
+    metaComparison: 'META: 16 TB/s to 16K GPUs. You: ~103.5 GB/s aggregate GET on an 8-node reference cluster (~12.9 GB/s/node), scaling with nodes. MinIO Cache prevents GPU starvation.',
   },
   {
     id: 'training',
@@ -92,7 +93,7 @@ const PIPELINE_PHASES: PipelinePhase[] = [
     storageOperation: 'NONE - GPU memory only',
     tier: 0,
     ioPattern: 'Compute-bound, no storage I/O',
-    dataVolume: 'Weights in VRAM (GBs-TBs)',
+    dataVolume: 'Weights in GPU HBM (GBs-TBs)',
     latencyReq: 'N/A - memory-resident',
     minioRole: 'NONE during active training',
     metaComparison: 'META: 400 TFLOPs/GPU. You: Vera Rubin next-gen FP4/FP6 = even more.',
@@ -135,15 +136,15 @@ const PIPELINE_PHASES: PipelinePhase[] = [
   },
   {
     id: 'kvcache',
-    name: '8b. KV-Cache Overflow (Inference)',
-    description: 'Long-context / agentic inference overflows KV cache from VRAM to NVIDIA CMX G3.5 tier via RDMA — 5× tokens/sec vs eviction.',
-    storageOperation: 'Bidirectional spill ↔ refill',
+    name: '8b. G3.5 Context Memory (Inference)',
+    description: 'Long-context / agentic inference keeps the KV cache resident in the G3.5 context-memory layer (NVIDIA memory-hierarchy lens) via MinIO MemKV — instead of evicting and recomputing.',
+    storageOperation: 'KV cache GPU→NVMe over RDMA',
     tier: 'G3.5' as unknown as PipelinePhase['tier'],
-    ioPattern: 'Sub-ms RDMA, 800 GbE Spectrum-X',
+    ioPattern: 'Microsecond RDMA, Spectrum-X 800 GbE',
     dataVolume: 'GBs-TBs KV state',
     latencyReq: '<1ms (RDMA)',
-    minioRole: 'MinIO AIStor on BlueField-4 NVMe in STX rack',
-    metaComparison: 'NEW at GTC 2026: NVIDIA CMX™ with MinIO AIStor. 5× tokens/sec, 5× power efficiency vs KV eviction/recompute.',
+    minioRole: 'MinIO MemKV — single ARM64-native binary in the NVIDIA STX rack',
+    metaComparison: 'NEW at GTC 2026: MinIO MemKV. KV cache GPU→NVMe over RDMA — no file system, no object protocol, no CPU in the data path; sustains 95%+ GPU utilization cluster-wide.',
   },
   {
     id: 'export',
@@ -175,62 +176,62 @@ const PIPELINE_PHASES: PipelinePhase[] = [
 const TIERS = [
   {
     tier: 0,
-    name: 'Raw Block / GDS',
-    subtitle: 'NVMe Local (Block)',
-    what: 'Local NVMe, GPU-Direct Storage, mmap, PVCs',
+    name: 'NVMe Local Bus / Direct-Attach',
+    subtitle: 'ILM lens · DirectPV / K8s local NVMe',
+    what: 'Local NVMe on the node bus — MinIO DirectPV provisions raw drives for Kubernetes. GPU-Direct Storage, mmap, ephemeral PVCs.',
     capacity: 'TB+',
     latency: '<100μs',
-    isMinIO: false,
+    isMinIO: true,
     color: '#10B981',
-    accessMethod: 'PCIe / NVMe-oF / cuFile (GPU-Direct Storage)',
-    keyUse: 'Spark shuffle, Weaviate HNSW index, GPU VRAM',
+    accessMethod: 'PCIe / NVMe-oF / cuFile (GPU-Direct Storage); MinIO DirectPV for K8s',
+    keyUse: 'Spark shuffle, Weaviate HNSW index, GPU HBM staging',
   },
   {
     tier: 'G3.5',
-    name: 'NVIDIA CMX™ — KV-Cache Overflow',
-    subtitle: 'MinIO AIStor on BlueField-4 NVMe (800 GbE RDMA)',
-    what: 'NVIDIA CMX™ (Context Memory Extension). KV-cache spills from VRAM to MinIO AIStor on BF-4 NVMe inside the STX rack via Spectrum-X 800 GbE RDMA. 5× tokens/sec, 5× power efficiency vs eviction.',
-    capacity: 'TB+',
-    latency: '<1ms (RDMA)',
+    name: 'MinIO MemKV — G3.5 Context Memory',
+    subtitle: 'NVIDIA memory-hierarchy lens · between GPU HBM (G3) and object storage (G4)',
+    what: 'The G3.5 context-memory layer. MinIO MemKV moves the KV cache GPU→NVMe over RDMA — no file system, no object protocol, no CPU in the data path — over Spectrum-X 800 GbE. Single ARM64-native binary inside the STX rack; 2–16 MB blocks; sustains 95%+ GPU utilization cluster-wide.',
+    capacity: 'Petascale pool',
+    latency: 'microsecond (RDMA)',
     isMinIO: true,
     color: '#14B8A6',
-    accessMethod: 'GPUDirect RDMA for S3 over Spectrum-X 800 GbE',
-    keyUse: 'Inference KV-cache overflow, agentic context persistence, long-context serving',
+    accessMethod: 'GPUDirect RDMA over Spectrum-X 800 GbE + PCIe Gen6 (NIXL plugin)',
+    keyUse: 'Inference KV-cache residency, agentic context persistence, long-context serving',
   },
   {
     tier: 1,
-    name: 'Hot S3 (In-Cluster)',
-    subtitle: 'NVMe Local (PVC / S3)',
-    what: 'MinIO AIStor pod on local NVMe inside the K8s cluster',
+    name: 'RDMA → S3 to 100% NVMe',
+    subtitle: 'ILM lens · in-cluster fast path',
+    what: 'MinIO AIStor on 100% NVMe, reached via S3 over RDMA inside the cluster — the fast in-cluster S3 path.',
     capacity: 'TB+',
     latency: '1-5ms',
     isMinIO: true,
     color: '#C72C48',
-    accessMethod: 'S3 API over localhost / service mesh',
+    accessMethod: 'S3 over RDMA / RoCE v2 (in-cluster)',
     keyUse: 'DataLoader streaming, MLflow artifacts, base model load, adapter swaps',
   },
   {
     tier: 2,
-    name: 'Warm S3 (MinIO AIStor) — Fastest S3 over RDMA',
-    subtitle: 'Fastest S3 over RDMA to NVMe (800 GbE)',
-    what: 'MinIO AIStor — the fastest and most efficient S3 over RDMA. 5× the performance of legacy storage architectures. THE capacity tier: Data Lake, Lakehouse, Medallion architecture, AIStor Tables (Iceberg).',
+    name: 'Standard S3 (100G) to 100% NVMe',
+    subtitle: 'ILM lens · the capacity tier',
+    what: 'MinIO AIStor on 100% NVMe over standard S3 at 100 GbE. THE capacity tier: Data Lake, Lakehouse, Medallion architecture, AIStor Tables (native Iceberg).',
     capacity: 'PB+',
     latency: '5-15ms',
     isMinIO: true,
     color: '#F59E0B',
-    accessMethod: 'S3 over RDMA / RoCE v2 (800 GbE Spectrum-X, ConnectX-9)',
+    accessMethod: 'Standard S3 over 100 GbE',
     keyUse: 'Lakehouse (Iceberg/Delta), checkpoints, model registry, document store',
   },
   {
     tier: 3,
-    name: 'Cold Archive',
-    subtitle: 'S3 to NVMe/SSD — 100 GbE (SSD Recommended)',
-    what: 'MinIO AIStor with Object Lock, ILM tiering, WORM compliance',
+    name: 'Standard S3 (25G/100G) to SSD or Hybrid (cold)',
+    subtitle: 'ILM lens · cold/archive',
+    what: 'MinIO AIStor on SSD or hybrid SSD/HDD with Object Lock, ILM tiering, WORM compliance.',
     capacity: 'EB+',
     latency: '15-50ms',
     isMinIO: true,
     color: '#6B7280',
-    accessMethod: 'S3 with Object Lock + ILM lifecycle rules (100 GbE)',
+    accessMethod: 'Standard S3 (25G/100G) with Object Lock + ILM lifecycle rules',
     keyUse: 'Compliance archive, audit logs (SEC 17a-4(f)), retired model versions',
   },
 ]
@@ -249,36 +250,36 @@ Your instinct: "GPU talks to storage like iSCSI initiator talks to target."
 Reality: GPU doesn't "talk to storage" during training at all.
 
 The GPU is the COMPUTE. Storage is the STAGING AREA.
-- Data is PRELOADED into GPU VRAM before training starts
+- Data is PRELOADED into GPU HBM before training starts
 - Training loop runs ENTIRELY in GPU memory (no storage I/O)
 - Checkpoints are PERIODIC WRITES (not continuous I/O)
 
 BUT for INFERENCE (GTC 2026 update):
-- KV-cache CAN overflow from VRAM to NVIDIA CMX G3.5 tier
-- This IS continuous, sub-ms RDMA I/O during active serving
-- MinIO AIStor on BlueField-4 NVMe in the STX rack
-- 5× tokens/sec, 5× power efficiency vs KV eviction
+- The KV cache CAN live in the G3.5 context-memory layer (NVIDIA lens)
+- This IS continuous, microsecond RDMA I/O during active serving
+- MinIO MemKV — a single ARM64-native binary inside the NVIDIA STX rack
+- KV cache GPU→NVMe over RDMA: no file system, no object protocol, no CPU in the data path
 
 Think of it like this:
 - OLD: Database server doing random I/O to SAN all day
 - NEW (Training): Load the dataset, train for hours in memory, occasionally save
-- NEW (Inference): Continuous KV spill/refill to AIStor via RDMA — storage IS in the hot path
+- NEW (Inference): KV cache resident in the G3.5 layer over RDMA — storage IS in the hot path
 
 The DPU (BlueField-4 SuperNIC in the STX rack) handles:
 - Network offload (RDMA/RoCE 800 GbE for GPU-to-GPU communication)
-- NVIDIA CMX G3.5 KV-cache overflow (MinIO AIStor on BF-4 NVMe)
+- The G3.5 context-memory data path (MinIO MemKV, GPU→NVMe over RDMA)
 - GPUDirect RDMA for S3 — zero-copy transfers
 
 Storage handles:
 - Data Lake (before training)
 - Checkpoints (during training, but periodic)
 - Model Registry (after training)
-- KV-cache overflow (during inference, continuous)
+- G3.5 context memory (during inference, continuous)
 `, 
   comparison: [
     { old: 'iSCSI Initiator', new: 'RDMA NIC (ConnectX-9)', purpose: 'GPU-to-GPU gradient sync, 800 GbE' },
-    { old: 'TOE Card', new: 'DPU (BlueField-4 SuperNIC)', purpose: 'Network offload + NVIDIA CMX KV overflow' },
-    { old: 'SAN Target', new: 'MinIO AIStor', purpose: 'Data Lake + Checkpoints + KV overflow' },
+    { old: 'TOE Card', new: 'DPU (BlueField-4 SuperNIC)', purpose: 'Network offload + G3.5 context-memory data path' },
+    { old: 'SAN Target', new: 'MinIO AIStor + MemKV', purpose: 'Data Lake + Checkpoints + G3.5 context memory' },
     { old: 'LUN', new: 'S3 Bucket', purpose: 'Namespace for objects' },
     { old: 'RAID Controller', new: 'Erasure Coding', purpose: 'Data protection' },
     { old: 'FC Fabric', new: 'Spectrum-X 800 GbE / InfiniBand', purpose: 'GPU + storage interconnect' },
@@ -305,7 +306,7 @@ export default function ReferenceArchitecture() {
               AI Training & Inference Reference Architecture
             </h2>
             <p className="text-black mt-1">
-              Prescriptive. One stack. Five tiers. NVIDIA CMX™-aware.
+              Prescriptive. One stack. Two tiering lenses. MemKV-aware.
             </p>
           </div>
           <button
@@ -357,7 +358,7 @@ export default function ReferenceArchitecture() {
               FOLLOW
             </span>
             <span className="block">Storage Tiers</span>
-            <span className="block text-[10px] opacity-70">5-tier layout</span>
+            <span className="block text-[10px] opacity-70">Two-lens layout</span>
           </button>
 
           {/* The Stack — green FOLLOW badge, no step number */}
@@ -544,8 +545,7 @@ function TierView({ tiers }: { tiers: typeof TIERS }) {
   return (
     <div className="space-y-4">
       <div className="text-sm text-gray-400 mb-4">
-        <strong className="text-white">The 5 Tiers:</strong> Understand where data lives at each latency target.
-        Note: Tier 0 is NOT MinIO AIStor. Tier G3.5 is NEW (GTC 2026).
+        <strong className="text-white">Two tiering lenses:</strong> The <strong className="text-teal-400">G3.5 row</strong> belongs to the NVIDIA memory hierarchy (between GPU HBM and object storage). <strong className="text-amber-400">T0–T3</strong> are the storage-agnostic ILM tiers. They are not one stack — don’t conflate them.
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -642,7 +642,8 @@ function StackView({ stack }: { stack: typeof STACK }) {
     { key: 'mlops', label: 'MLOps', icon: '📊' },
     { key: 'vectorDb', label: 'Vector DB', icon: '🔍' },
     { key: 'serving', label: 'Serving', icon: '🚀' },
-    { key: 'storage', label: 'Storage', icon: '💾' },
+    { key: 'contextMemory', label: 'Context Memory (G3.5)', icon: '🧠' },
+    { key: 'storage', label: 'Storage', icon: '📾' },
   ]
 
   return (
@@ -688,8 +689,8 @@ function StackView({ stack }: { stack: typeof STACK }) {
           META built Tectonic (custom distributed FS) to train Llama 3 on 16K GPUs.
           You get the same architecture pattern with <strong className="text-white">MinIO AIStor</strong> — 
           without building from scratch. Same S3 API, same performance class, fraction of the effort.
-          Post-GTC 2026: MinIO AIStor is also the NVIDIA CMX G3.5 KV-cache overflow tier for inference —
-          <strong className="text-teal-400">5× tokens/sec, 5× power efficiency</strong>.
+          Post-GTC 2026: <strong className="text-teal-400">MinIO MemKV</strong> also serves the G3.5 context-memory
+          layer for inference — KV cache GPU→NVMe over RDMA, no CPU in the data path, 95%+ GPU utilization cluster-wide.
         </p>
       </div>
     </div>
@@ -773,8 +774,8 @@ function DinosaurGuideModal({
             </ul>
             <p className="mt-3 text-gray-300 text-sm">
               <strong className="text-teal-400">For Inference (NEW — GTC 2026):</strong> Storage IS in the hot path.
-              KV-cache overflows from VRAM to MinIO AIStor on BF-4 NVMe via RDMA.
-              Continuous, sub-ms I/O during every token generated. 5× tokens/sec vs eviction.
+              The KV cache lives in the G3.5 context-memory layer via MinIO MemKV — GPU→NVMe over RDMA,
+              no file system, no object protocol, no CPU in the data path. Continuous, microsecond I/O during serving.
             </p>
           </div>
         </div>
