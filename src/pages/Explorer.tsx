@@ -44,7 +44,7 @@ export default function Explorer() {
     { 
       id: 'storage-layout', 
       name: 'Storage Tiers', 
-      description: 'The 4-Tier Layout',
+      description: 'ILM tiers + the G3.5 layer',
       available: true,
       stepColor: '#8B5CF6',
     },
@@ -167,8 +167,8 @@ export default function Explorer() {
                     <p className="text-gray-600">
                       When DataLoader throughput drops below GPU consumption rate, GPUs idle waiting for data. 
                       When synchronous checkpoints pause training, every GPU in the cluster burns money doing nothing. 
-                      On a 1,000-GPU cluster at $2-3/hr per GPU, each minute of storage-induced idle time costs $30-50. 
-                      Faster storage directly reduces training cost.
+                      On a large GPU cluster, every minute of storage-induced idle time is expensive — idle accelerators
+                      are the single biggest cost in the loop. Faster storage directly reduces training cost.
                     </p>
                   </div>
 
@@ -236,7 +236,7 @@ export default function Explorer() {
                       <tr>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">DataLoader Streaming</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sequential reads w/ prefetch</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Continuous (325 GiB/s target)</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Continuous (high aggregate GET)</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Read throughput (GB/s)</td>
                       </tr>
                       <tr>
@@ -259,9 +259,10 @@ export default function Explorer() {
               <BottomLine>
                 Object storage is in the critical path for every phase of training except the GPU compute loop itself. 
                 It's the data lake foundation (Bronze → Silver → Gold), the DataLoader source that must sustain 
-                325 GiB/s per node to keep GPUs fed, the checkpoint store where 500GB-1TB writes pause the entire 
-                cluster, and the artifact registry for experiment tracking and model export. Storage throughput 
-                directly impacts GPU utilization and training cost. The GPU training loop runs in VRAM — but 
+                high aggregate throughput to keep GPUs fed (an 8-node AIStor reference cluster sustains ~103.5 GB/s 
+                aggregate GET, ~12.9 GB/s/node, scaling with nodes), the checkpoint store where 500GB-1TB writes pause 
+                the entire cluster, and the artifact registry for experiment tracking and model export. Storage throughput 
+                directly impacts GPU utilization and training cost. The GPU training loop runs in HBM — but 
                 everything that feeds it, saves it, and records it runs through object storage.
               </BottomLine>
             </>
@@ -464,16 +465,16 @@ export default function Explorer() {
                         <div className="mt-2 text-sm text-cyan-700 space-y-1">
                           <p>&rarr; Attention computation (KV cache in GPU HBM)</p>
                           <p>&rarr; FFN layers (matrix multiplications, GPU compute)</p>
-                          <p>&rarr; <span className="font-semibold text-cyan-900">If KV cache exceeds VRAM: pages spill to NVIDIA CMX G3.5 (BlueField-4 NVMe) via RDMA</span></p>
+                          <p>&rarr; <span className="font-semibold text-cyan-900">If context exceeds GPU HBM: the KV cache lives in the G3.5 context-memory layer (MinIO MemKV) — GPU→NVMe over RDMA</span></p>
                           <p>&rarr; Logits produced &rarr; sampling &rarr; output token</p>
                           <p>&rarr; <span className="font-semibold">Repeat autoregressively until stop condition</span></p>
                         </div>
                         <div className="mt-3 flex flex-wrap gap-2">
                           <span className="inline-flex items-center px-3 py-1 bg-emerald-600 text-white text-xs font-bold rounded">
-                            SHORT REQUESTS: GPU VRAM ONLY
+                            SHORT REQUESTS: GPU HBM ONLY
                           </span>
                           <span className="inline-flex items-center px-3 py-1 bg-cyan-600 text-white text-xs font-bold rounded">
-                            LONG-CONTEXT / AGENTIC: VRAM + NVIDIA CMX G3.5 OVERFLOW
+                            LONG-CONTEXT / AGENTIC: HBM + MEMKV G3.5
                           </span>
                         </div>
                       </div>
@@ -507,14 +508,14 @@ export default function Explorer() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                       </span>
-                      NVIDIA CMX™ G3.5: Breaking the Memory Wall
+                      MinIO MemKV (G3.5): Breaking the Memory Wall
                     </h3>
                     <p className="text-gray-600">
-                      Agentic AI workloads with million-token contexts explode KV cache beyond GPU HBM capacity. 
-                      NVIDIA CMX™ adds a <strong>G3.5 flash tier</strong> &mdash; BlueField-4 NVMe at sub-ms RDMA latency &mdash; 
-                      that holds overflow KV pages. MinIO AIStor runs natively on BF-4, delivering up to{' '}
-                      <span className="font-semibold text-cyan-700">5&times; tokens/sec</span> and{' '}
-                      <span className="font-semibold text-cyan-700">5&times; power efficiency</span> vs KV eviction.
+                      Agentic AI workloads with long contexts explode the KV cache beyond GPU HBM capacity. 
+                      The <strong>G3.5 context-memory layer</strong> &mdash; between GPU HBM (G3) and object storage (G4) &mdash; 
+                      keeps that KV cache resident instead of evicting and recomputing it. MinIO MemKV moves it{' '}
+                      <span className="font-semibold text-cyan-700">GPU→NVMe over RDMA</span> with{' '}
+                      <span className="font-semibold text-cyan-700">no file system, no object protocol, and no CPU in the data path</span>, sustaining 95%+ GPU utilization cluster-wide.
                     </p>
                   </div>
 
@@ -528,8 +529,8 @@ export default function Explorer() {
                       Cold Start Impact
                     </h3>
                     <p className="text-gray-600">
-                      Object storage throughput directly affects time-to-first-token <span className="italic">for new instances</span>. 
-                      A 70B model at 140 GB needs to move from S3 to GPU VRAM. At 10 GB/s, that's 14 seconds. 
+                      Object storage throughput directly affects how fast a new instance is ready to serve. 
+                      A 70B model at 140 GB needs to move from S3 to GPU HBM. At 10 GB/s, that's 14 seconds. 
                       At 1 GB/s, that's 2+ minutes. This matters for autoscaling and recovery.
                     </p>
                   </div>
@@ -595,8 +596,8 @@ export default function Explorer() {
                         <td className="px-6 py-4"><span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">BURST READ</span></td>
                       </tr>
                       <tr className="bg-cyan-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-cyan-800">KV Cache Overflow (NVIDIA CMX G3.5)</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-cyan-600">Sub-ms random R/W via RDMA</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-cyan-800">KV Cache Residency (MemKV G3.5)</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-cyan-600">Microsecond random R/W via RDMA</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-cyan-600">Long-context / agentic requests</td>
                         <td className="px-6 py-4"><span className="px-2 py-1 text-xs font-medium bg-cyan-200 text-cyan-800 rounded">ACTIVE TIER</span></td>
                       </tr>
@@ -618,11 +619,11 @@ export default function Explorer() {
               </section>
 
               <BottomLine>
-                Inference is no longer just bookends. For short requests, the forward pass still runs entirely in GPU VRAM.
-                But for agentic and long-context workloads, KV cache pages overflow to the{' '}
-                <strong>NVIDIA CMX™ G3.5 tier</strong> &mdash; MinIO AIStor running natively on NVIDIA BlueField-4 within the STX rack,
-                delivering sub-millisecond RDMA at 800 GbE via Spectrum-X. This is storage <em>inside</em> the inference loop:
-                up to 5&times; tokens/sec vs KV eviction. Add model loading, adapter swaps, logging, and RLHF feedback,
+                Inference is no longer just bookends. For short requests, the forward pass still runs entirely in GPU HBM.
+                But for agentic and long-context workloads, the KV cache lives in the{' '}
+                <strong>G3.5 context-memory layer</strong> &mdash; MinIO MemKV, a single ARM64-native binary inside the NVIDIA STX rack,
+                moving KV cache GPU→NVMe over RDMA at 800 GbE via Spectrum-X with no CPU in the data path. This is storage <em>inside</em> the inference loop.
+                Add model loading, adapter swaps, logging, and RLHF feedback,
                 and object storage touches every phase of the inference lifecycle.
               </BottomLine>
             </>
