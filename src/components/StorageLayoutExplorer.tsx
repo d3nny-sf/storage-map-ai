@@ -201,7 +201,7 @@ const storageTiers: StorageTier[] = [
         tier: 1,
         description: 'Streaming tokenized shards to GPUs via S3 with prefetch buffers',
         storageUse: 'Sequential reads with multi-worker prefetch',
-        ioPattern: '325 GiB/s aggregate read throughput',
+        ioPattern: 'High aggregate read throughput (~103.5 GB/s GET, 8-node reference)',
       },
       {
         id: 'kubeflow-artifacts',
@@ -235,8 +235,8 @@ const storageTiers: StorageTier[] = [
       'MinIO AIStor Pod IN-CLUSTER (not adjacent)',
       'Single pod with local NVMe drives',
       'Operational S3 — not capacity tier',
-      '325 GiB/s read throughput (32-node benchmark)',
-      '46.5 GB/s GET on 8-node cluster (whitepaper)',
+      '~103.5 GB/s aggregate GET (8-node reference, ~12.9 GB/s/node)',
+      'Scales linearly as nodes are added',
       'MinIO Cache (DRAM) prevents GPU starvation',
       'S3 API over localhost / service mesh',
     ],
@@ -299,7 +299,7 @@ const storageTiers: StorageTier[] = [
       'Medallion: Bronze → Silver → Gold',
       'S3 over RDMA to NVMe — 800 GbE Spectrum-X RoCE v2',
       'Reed-Solomon erasure coding (whitepaper: per-object inline EC)',
-      '165 GiB/s PUT; 2.5 TiB/s aggregate on 300 servers',
+      '~34.4 GB/s PUT (8-node reference); scales with node count',
     ],
   },
   {

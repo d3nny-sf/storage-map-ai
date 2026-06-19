@@ -105,7 +105,7 @@ const nodes: NodeData[] = [
       throughput: 'Burst — want fast load to minimize GPU idle',
       metric: 'Read throughput (GB/s)',
     },
-    minioFeature: '325 GiB/s GET (32-node) loads 140GB model in <1s at cluster scale; 46.5 GB/s GET on 8-node sufficient for fine-tuning (whitepaper benchmarks)',
+    minioFeature: 'An 8-node AIStor reference cluster (~103.5 GB/s aggregate GET) loads a 140GB model in roughly a second and is far more than enough for fine-tuning; throughput scales with node count',
     dataVolume: 'GB',
     phase: 1,
   },
