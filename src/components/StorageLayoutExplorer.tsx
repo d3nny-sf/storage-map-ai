@@ -496,8 +496,8 @@ export default function StorageLayoutExplorer() {
       {/* Main Diagram — grid on the left, detail docked on the right (desktop) */}
       <div className="p-6 lg:p-8 lg:grid lg:grid-cols-[1fr_380px] lg:gap-8 lg:items-start">
         <div>
-        {/* Tier Cards - Responsive Layout with MORE SPACING */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+        {/* Tier Cards - compact, natural-height columns (no equal-height void) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8 items-start">
           {storageTiers.map((tier) => (
             <TierCard
               key={tier.id}
@@ -669,9 +669,9 @@ function TierCard({ tier, isSelected, isHighlighted, isDimmed, onClick, onCompon
           style={{ backgroundColor: tier.color }}
         />
       )}
-      {/* Header - More breathing room */}
-      <div className="p-4 lg:p-5 border-b border-white/10">
-        <div className="flex items-center justify-between mb-3">
+      {/* Header - compact */}
+      <div className="p-4 border-b border-white/10">
+        <div className="flex items-center justify-between mb-2.5">
           <span
             className="px-2 py-1 rounded-full text-xs font-bold"
             style={{ backgroundColor: `${tier.color}30`, color: tier.color }}
@@ -693,7 +693,7 @@ function TierCard({ tier, isSelected, isHighlighted, isDimmed, onClick, onCompon
         <h4 className="text-white font-bold text-base lg:text-lg leading-tight">{tier.name}</h4>
         <p className="text-gray-400 text-sm mt-1">{tier.subtitle}</p>
         
-        <div className="flex flex-wrap items-center gap-3 lg:gap-4 mt-4 text-xs">
+        <div className="flex flex-wrap items-center gap-3 lg:gap-4 mt-3 text-xs">
           <div>
             <span className="text-gray-500">Capacity:</span>
             <span className="text-white font-semibold ml-1">{tier.capacity}</span>
@@ -706,7 +706,7 @@ function TierCard({ tier, isSelected, isHighlighted, isDimmed, onClick, onCompon
       </div>
 
       {/* Components */}
-      <div className="p-4 space-y-2">
+      <div className="p-3 space-y-1.5">
         {tier.components.map((comp) => (
           <button
             key={comp.id}
@@ -714,7 +714,7 @@ function TierCard({ tier, isSelected, isHighlighted, isDimmed, onClick, onCompon
               e.stopPropagation()
               onComponentClick(comp)
             }}
-            className="w-full text-left px-3 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group"
+            className="w-full text-left px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group"
           >
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm text-white font-medium leading-snug">{comp.shortName}</span>
@@ -722,7 +722,7 @@ function TierCard({ tier, isSelected, isHighlighted, isDimmed, onClick, onCompon
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
-            <p className="text-xs text-gray-500 mt-1.5 line-clamp-2">{comp.description}</p>
+            <p className="text-xs text-gray-500 mt-1 line-clamp-2">{comp.description}</p>
           </button>
         ))}
       </div>
@@ -741,8 +741,8 @@ function DetailPanel({ tier, component, onClose }: DetailPanelProps) {
 
   return (
     <div className="rounded-2xl border border-white/10 bg-gray-900/95 lg:bg-gray-900/80 backdrop-blur-xl shadow-2xl">
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-6">
+      <div className="p-5">
+        <div className="flex items-start justify-between mb-5">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <span
@@ -775,18 +775,18 @@ function DetailPanel({ tier, component, onClose }: DetailPanelProps) {
         </div>
 
         {component ? (
-          <div className="grid grid-cols-1 gap-4">
-            <div className="bg-gray-800/50 rounded-xl p-4">
-              <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Storage Use</h4>
+          <div className="grid grid-cols-1 gap-3">
+            <div className="bg-gray-800/50 rounded-xl p-3.5">
+              <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-2">Storage Use</h4>
               <p className="text-white">{component.storageUse}</p>
             </div>
-            <div className="bg-gray-800/50 rounded-xl p-4">
-              <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">I/O Pattern</h4>
+            <div className="bg-gray-800/50 rounded-xl p-3.5">
+              <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-2">I/O Pattern</h4>
               <p className="text-white">{component.ioPattern}</p>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 gap-4">
             <div>
               <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Key Details</h4>
               <ul className="space-y-2">
