@@ -74,7 +74,7 @@ export default function Home() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="relative bg-dark text-white py-24 lg:py-32 overflow-hidden">
+      <section className="relative bg-dark text-white py-12 lg:py-16 overflow-hidden">
         {/* Animated background */}
         <div className="absolute inset-0 animated-gradient" />
         
@@ -87,13 +87,13 @@ export default function Home() {
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4 animate-slide-up" style={{ animationDelay: '0.1s' }}>
               The{' '}
               <span className="gradient-text">AI Storage</span>{' '}
               Map
             </h1>
             
-            <p className="text-xl text-gray-400 mb-10 leading-relaxed max-w-3xl animate-slide-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+            <p className="text-lg text-gray-400 mb-6 leading-relaxed max-w-3xl animate-slide-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
               A technical reference for where object storage actually lives in AI/ML pipelines.
               Every phase mapped. Every I/O pattern explained.
             </p>
@@ -119,7 +119,7 @@ export default function Home() {
           
           {/* Floating decorative elements */}
           <div className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2">
-            <div className="relative w-64 h-64">
+            <div className="relative w-48 h-48">
               <div className="absolute inset-0 border-2 border-raspberry/20 rounded-2xl rotate-12 animate-pulse-glow" />
               <div className="absolute inset-4 border border-white/10 rounded-xl -rotate-6" />
               <div className="absolute inset-8 bg-gradient-to-br from-raspberry/10 to-transparent rounded-lg backdrop-blur-sm border border-white/5 flex items-center justify-center">
@@ -134,15 +134,14 @@ export default function Home() {
       </section>
 
       {/* Pipeline Cards */}
-      <section className="py-20 bg-gradient-to-b from-white to-gray-50">
+      <section className="py-12 bg-gradient-to-b from-white to-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-8">
+            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">
               Four Pipelines. Four Storage Stories.
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Each AI workload has distinct phases where storage plays different roles. 
-              Click to explore the technical details.
+            <p className="text-sm text-gray-500 sm:text-right">
+              Each AI workload puts storage in a different role. Click any card to explore the details.
             </p>
           </div>
 
@@ -152,7 +151,7 @@ export default function Home() {
                 key={pipeline.id}
                 to={pipeline.path}
                 style={{ animationDelay: `${index * 100}ms` }}
-                className={`group relative bg-white rounded-2xl p-8 border-2 border-gray-100 ${pipeline.borderColor} transition-all duration-300 card-hover opacity-0 animate-scale-in`}
+                className={`group relative bg-white rounded-2xl p-6 border-2 border-gray-100 ${pipeline.borderColor} transition-all duration-300 card-hover opacity-0 animate-scale-in`}
               >
                 {/* Background gradient on hover */}
                 <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${pipeline.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
@@ -176,7 +175,7 @@ export default function Home() {
                 </div>
                 
                 {/* Arrow indicator */}
-                <div className="absolute top-8 right-8 text-gray-300 group-hover:text-raspberry group-hover:translate-x-1 transition-all duration-300">
+                <div className="absolute top-6 right-6 text-gray-300 group-hover:text-raspberry group-hover:translate-x-1 transition-all duration-300">
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -187,35 +186,41 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Bottom Line CTA */}
-      <section className="relative py-24 bg-dark text-white overflow-hidden">
+      {/* Bottom Line — slim closing band (the punchline, not a full screen) */}
+      <section className="relative py-10 bg-dark text-white overflow-hidden">
         {/* Background elements */}
-        <div className="absolute inset-0 animated-gradient opacity-50" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-raspberry/20 rounded-full blur-[100px]" />
-        <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-blue-500/15 rounded-full blur-[80px]" />
-        
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="w-16 h-16 mx-auto mb-8 bg-gradient-to-br from-raspberry to-raspberry-dark rounded-2xl flex items-center justify-center shadow-2xl shadow-raspberry/30">
-            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
+        <div className="absolute inset-0 animated-gradient opacity-40" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-raspberry/15 rounded-full blur-[100px]" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-10">
+            {/* Icon + punchline */}
+            <div className="flex items-start gap-4 flex-1">
+              <div className="flex-shrink-0 w-11 h-11 bg-gradient-to-br from-raspberry to-raspberry-dark rounded-xl flex items-center justify-center shadow-lg shadow-raspberry/30">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold mb-1">The Bottom Line</h2>
+                <p className="text-sm text-gray-300 leading-relaxed">
+                  Object storage is the gravitational center of the AI data lifecycle — every pipeline, every phase, every workload.{' '}
+                  <span className="text-white font-medium">With the G3.5 context-memory layer, MinIO MemKV is now inside the inference loop itself</span>, keeping the KV cache resident for agentic and long-context workloads on NVIDIA's STX architecture.
+                </p>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <Link
+              to="/compare"
+              className="btn-primary inline-flex items-center justify-center px-6 py-3.5 text-white font-semibold rounded-xl whitespace-nowrap transition-all flex-shrink-0"
+            >
+              Explore the Comparison Matrix
+              <svg className="ml-2 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
           </div>
-          
-          <h2 className="text-3xl lg:text-4xl font-bold mb-6">The Bottom Line</h2>
-          <p className="text-xl text-gray-300 leading-relaxed mb-10 max-w-3xl mx-auto">
-            Object storage is the gravitational center of the AI data lifecycle. It's in every pipeline, 
-            at every phase, for every workload — <span className="text-white font-medium">and with the G3.5 context-memory layer, MinIO MemKV is now inside the inference loop itself</span>, 
-            keeping the KV cache resident for agentic and long-context workloads on NVIDIA's STX architecture.
-          </p>
-          <Link
-            to="/compare"
-            className="btn-primary inline-flex items-center px-10 py-5 text-white font-semibold rounded-xl text-lg transition-all"
-          >
-            Explore the Comparison Matrix
-            <svg className="ml-3 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </Link>
         </div>
       </section>
     </div>
