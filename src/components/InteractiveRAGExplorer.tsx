@@ -899,33 +899,33 @@ export default function InteractiveRAGExplorer() {
 
       {/* The Critical Architecture Question — migrated from RAG tab */}
       <section className="mt-12 mb-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">The Critical Architecture Question</h2>
-        <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-6">
-          <h3 className="font-semibold text-amber-800 mb-4">Where do retrieved chunks come from at query time?</h3>
+        <h2 className="text-2xl font-bold gradient-text mb-6">The Critical Architecture Question</h2>
+        <div className="bg-amber-500/10 border-2 border-amber-400/30 rounded-xl p-6">
+          <h3 className="font-semibold text-amber-300 mb-4">Where do retrieved chunks come from at query time?</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-amber-200">
-              <div className="font-medium text-gray-900 mb-2">Option A: Inline Storage</div>
-              <p className="text-sm text-gray-600 mb-2">Vector DB stores chunk text inline with the vector</p>
-              <div className="text-xs bg-gray-100 rounded px-2 py-1 text-gray-600">
-                Storage: <span className="font-semibold text-green-600">NOT in query path</span>
+            <div className="outta-inset p-4">
+              <div className="font-medium text-white mb-2">Option A: Inline Storage</div>
+              <p className="text-sm text-gray-300 mb-2">Vector DB stores chunk text inline with the vector</p>
+              <div className="text-xs bg-white/5 rounded px-2 py-1 text-gray-300">
+                Storage: <span className="font-semibold text-emerald-400">NOT in query path</span>
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-amber-200">
-              <div className="font-medium text-gray-900 mb-2">Option B: Pointer Storage</div>
-              <p className="text-sm text-gray-600 mb-2">Vector DB stores pointers back to S3 chunks</p>
-              <div className="text-xs bg-gray-100 rounded px-2 py-1 text-gray-600">
-                Storage: <span className="font-semibold text-raspberry">IN query hot path</span>
+            <div className="outta-inset p-4">
+              <div className="font-medium text-white mb-2">Option B: Pointer Storage</div>
+              <p className="text-sm text-gray-300 mb-2">Vector DB stores pointers back to S3 chunks</p>
+              <div className="text-xs bg-white/5 rounded px-2 py-1 text-gray-300">
+                Storage: <span className="font-semibold text-raspberry-light">IN query hot path</span>
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-amber-200">
-              <div className="font-medium text-gray-900 mb-2">Option C: Cached</div>
-              <p className="text-sm text-gray-600 mb-2">Chunks cached in Redis/app memory after first retrieval</p>
-              <div className="text-xs bg-gray-100 rounded px-2 py-1 text-gray-600">
-                Storage: <span className="font-semibold text-amber-600">Warm path (cache miss)</span>
+            <div className="outta-inset p-4">
+              <div className="font-medium text-white mb-2">Option C: Cached</div>
+              <p className="text-sm text-gray-300 mb-2">Chunks cached in Redis/app memory after first retrieval</p>
+              <div className="text-xs bg-white/5 rounded px-2 py-1 text-gray-300">
+                Storage: <span className="font-semibold text-amber-300">Warm path (cache miss)</span>
               </div>
             </div>
           </div>
-          <p className="mt-4 text-sm text-amber-700">
+          <p className="mt-4 text-sm text-amber-200/80">
             Your architecture choice determines whether object storage latency affects query response time. 
             Know which pattern you're using.
           </p>
@@ -934,34 +934,34 @@ export default function InteractiveRAGExplorer() {
 
       {/* Key Technical Insights — migrated from RAG tab */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Key Technical Insights</h2>
+        <h2 className="text-2xl font-bold gradient-text mb-6">Key Technical Insights</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <span className="w-8 h-8 bg-raspberry/10 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-raspberry" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="outta-card p-6">
+            <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+              <span className="w-8 h-8 bg-raspberry/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-raspberry-light" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </span>
               Continuous Ingestion
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-300">
               RAG is not a one-time setup. New documents arrive continuously. Your ingestion pipeline 
               (ingest → chunk → embed → upsert) runs on a schedule or trigger. Object storage is always 
               the durable source of truth.
             </p>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <span className="w-8 h-8 bg-raspberry/10 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-raspberry" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="outta-card p-6">
+            <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+              <span className="w-8 h-8 bg-raspberry/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-raspberry-light" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
                 </svg>
               </span>
               Corpus-Scale Embedding
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-300">
               Embedding isn't a one-time setup. Millions of documents, tens of millions of chunks, each 
               read from object storage and passed through an embedding model. At enterprise scale this 
               runs for hours or days — a sustained storage read workload. When you upgrade your embedding 
@@ -969,32 +969,32 @@ export default function InteractiveRAGExplorer() {
             </p>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <span className="w-8 h-8 bg-raspberry/10 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-raspberry" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="outta-card p-6">
+            <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+              <span className="w-8 h-8 bg-raspberry/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-raspberry-light" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </span>
               Vector DB Backing Store
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-300">
               Many vector databases use S3-compatible storage as their durable layer. Milvus, LanceDB, 
               and others flush segments to object storage. You might be using object storage in the 
               vector DB tier without realizing it.
             </p>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <span className="w-8 h-8 bg-raspberry/10 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-raspberry" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="outta-card p-6">
+            <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+              <span className="w-8 h-8 bg-raspberry/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-raspberry-light" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </span>
               RAG ≠ Inference
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-300">
               RAG is a retrieval + generation pipeline. The retrieval phase has distinct storage patterns 
               from pure inference. Don't conflate "RAG performance" with "LLM inference performance" — 
               they're measuring different things.
@@ -1005,41 +1005,41 @@ export default function InteractiveRAGExplorer() {
 
       {/* I/O Profile Summary — migrated from RAG tab */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">I/O Profile Summary</h2>
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <h2 className="text-2xl font-bold gradient-text mb-6">I/O Profile Summary</h2>
+        <div className="outta-card outta-table overflow-hidden">
+          <table className="min-w-full">
+            <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Operation</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pattern</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Frequency</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority Metric</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Operation</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Pattern</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Frequency</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Priority Metric</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Document Ingestion</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Small-medium writes</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Continuous / scheduled</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Availability, durability</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">Document Ingestion</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">Small-medium writes</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">Continuous / scheduled</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">Availability, durability</td>
               </tr>
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Embedding Pass</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sustained sequential reads</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Entire corpus per pass (hours-days)</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Read throughput</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">Embedding Pass</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">Sustained sequential reads</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">Entire corpus per pass (hours-days)</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">Read throughput</td>
               </tr>
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Vector DB Flush</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Segment writes</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Periodic</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Write throughput, durability</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">Vector DB Flush</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">Segment writes</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">Periodic</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">Write throughput, durability</td>
               </tr>
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Chunk Retrieval</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Small random reads</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Per query (if in path)</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Latency (if in query path)</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">Chunk Retrieval</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">Small random reads</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">Per query (if in path)</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">Latency (if in query path)</td>
               </tr>
             </tbody>
           </table>

@@ -14,16 +14,14 @@ export function PageHeader({ title, subtitle, description, children }: PageHeade
   const [showDescription, setShowDescription] = useState(false)
 
   return (
-    <div className="relative bg-dark text-white py-8 sm:py-10 overflow-hidden">
-      {/* Animated background */}
-      <div className="absolute inset-0 animated-gradient opacity-50" />
-
-      {/* Decorative elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-raspberry/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/4" />
+    <div className="relative cosmos-bg text-white py-8 sm:py-10 overflow-hidden">
+      {/* OUTTA SITE backdrop — twinkling starfield + drifting aurora */}
+      <div className="starfield opacity-60" />
+      <div className="aurora w-[28rem] h-[28rem] bg-raspberry/25 -top-32 -right-24" />
+      <div className="aurora w-72 h-72 bg-accent-blue/20 -bottom-24 -left-16" style={{ animationDelay: '-6s' }} />
 
       {/* Grid overlay */}
-      <div className="absolute inset-0 pattern-grid opacity-30" />
+      <div className="absolute inset-0 pattern-grid opacity-20" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
@@ -50,7 +48,9 @@ export function PageHeader({ title, subtitle, description, children }: PageHeade
             </button>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-3">{title}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-3">
+            <span className="gradient-text">{title}</span>
+          </h1>
 
           {/* Orientation copy — collapsed by default */}
           {showDescription && (
@@ -72,19 +72,20 @@ interface BottomLineProps {
 
 export function BottomLine({ children }: BottomLineProps) {
   return (
-    <div className="relative bg-gradient-to-r from-raspberry/5 via-raspberry/10 to-raspberry/5 border-2 border-raspberry/20 rounded-2xl p-8 mt-12 overflow-hidden">
+    <div className="dazzle-card relative p-8 mt-12 overflow-hidden" style={{ ['--card-glow' as string]: 'rgba(233,26,69,0.85)', ['--card-glow-2' as string]: 'rgba(145,79,219,0.6)' }}>
+      <div className="card-aura" />
       {/* Decorative gradient */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-raspberry/10 rounded-full blur-2xl" />
-      
+      <div className="absolute top-0 right-0 w-40 h-40 bg-raspberry/15 rounded-full blur-3xl" />
+
       <div className="relative flex items-start gap-4">
-        <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-raspberry to-raspberry-dark rounded-xl flex items-center justify-center shadow-lg shadow-raspberry/30">
-          <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="dazzle-icon flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-raspberry-light">
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>
         <div>
-          <h3 className="font-bold text-raspberry text-lg mb-2">The Bottom Line</h3>
-          <p className="text-gray-700 leading-relaxed">{children}</p>
+          <h3 className="font-bold text-lg mb-2 gradient-text">The Bottom Line</h3>
+          <p className="text-gray-300 leading-relaxed">{children}</p>
         </div>
       </div>
     </div>

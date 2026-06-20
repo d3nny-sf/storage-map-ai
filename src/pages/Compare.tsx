@@ -526,7 +526,8 @@ export default function Compare() {
   const selectedData = getSelectedData()
 
   return (
-    <div>
+    <div className="page-cosmos text-white">
+      <div className="starfield-fixed starfield opacity-50" />
       <PageHeader
         title="Cross-Pipeline Comparison"
         subtitle="The Complete Picture"
@@ -562,12 +563,12 @@ export default function Compare() {
         {/* WORKLOAD SCORECARDS                                           */}
         {/* ============================================================= */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Workload Scorecards</h2>
+          <h2 className="text-2xl font-bold gradient-text mb-6">Workload Scorecards</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
             {workloadSummaries.map((ws) => (
               <div
                 key={ws.key}
-                className={`bg-white rounded-2xl border-2 ${ws.borderColor}/30 p-5 hover:shadow-lg transition-shadow`}
+                className={`outta-card border-2 ${ws.borderColor}/30 p-5`}
               >
                 <div className="flex items-center justify-between mb-3">
                   <h3 className={`text-lg font-bold ${ws.color}`}>{ws.label}</h3>
@@ -578,11 +579,11 @@ export default function Compare() {
 
                 {/* Storage intensity bar */}
                 <div className="mb-3">
-                  <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                  <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
                     <span>Storage Intensity</span>
                     <span className="font-semibold">{ws.intensityPct}%</span>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${ws.bgColor}`}
                       style={{ width: `${ws.intensityPct}%` }}
@@ -590,29 +591,29 @@ export default function Compare() {
                   </div>
                 </div>
 
-                <p className="text-sm text-gray-600 mb-3">{ws.description}</p>
+                <p className="text-sm text-gray-300 mb-3">{ws.description}</p>
 
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Pipeline Nodes</span>
-                    <span className="font-semibold text-gray-900">{ws.nodeCount}</span>
+                    <span className="text-gray-400">Pipeline Nodes</span>
+                    <span className="font-semibold text-white">{ws.nodeCount}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Hot Path?</span>
-                    <span className="font-semibold text-gray-900">{ws.hotPath}</span>
+                    <span className="text-gray-400">Hot Path?</span>
+                    <span className="font-semibold text-white">{ws.hotPath}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Peak Throughput</span>
-                    <span className="font-semibold text-gray-900">{ws.peakThroughput}</span>
+                    <span className="text-gray-400">Peak Throughput</span>
+                    <span className="font-semibold text-white">{ws.peakThroughput}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Data Scale</span>
-                    <span className="font-semibold text-gray-900">{ws.dataScale}</span>
+                    <span className="text-gray-400">Data Scale</span>
+                    <span className="font-semibold text-white">{ws.dataScale}</span>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-gray-100">
-                  <p className="text-xs text-gray-500 italic leading-relaxed">{ws.keyInsight}</p>
+                <div className="mt-4 pt-3 border-t border-white/10">
+                  <p className="text-xs text-gray-400 italic leading-relaxed">{ws.keyInsight}</p>
                 </div>
               </div>
             ))}
@@ -624,7 +625,7 @@ export default function Compare() {
         {/* ============================================================= */}
         <section className="mb-8">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm font-bold text-gray-700">View:</span>
+            <span className="text-sm font-bold text-gray-300">View:</span>
             {[
               { id: 'matrix' as ViewMode,       label: 'Storage Role Matrix',    desc: 'Role per phase per workload' },
               { id: 'tier-heatmap' as ViewMode,  label: 'Tier Heatmap',          desc: 'Which tier each phase hits' },
@@ -636,7 +637,7 @@ export default function Compare() {
                 className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                   viewMode === v.id
                     ? 'bg-raspberry text-white shadow-lg shadow-raspberry/30'
-                    : 'bg-white text-gray-700 border border-gray-200 hover:border-raspberry/30 hover:bg-raspberry/5'
+                    : 'outta-inset text-gray-300 hover:border-raspberry/40 hover:text-white'
                 }`}
               >
                 <span className="block font-semibold">{v.label}</span>
@@ -650,25 +651,25 @@ export default function Compare() {
         {/* LEGEND                                                        */}
         {/* ============================================================= */}
         <section className="mb-6">
-          <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
+          <div className="outta-card p-4">
             <div className="flex flex-wrap items-center gap-6">
               {viewMode !== 'tier-heatmap' ? (
                 <>
-                  <span className="text-sm font-bold text-gray-700">Storage Role:</span>
+                  <span className="text-sm font-bold text-gray-300">Storage Role:</span>
                   {Object.entries(roleConfig).map(([role, config]) => (
                     <div key={role} className="flex items-center gap-2">
                       <div className={`w-3 h-3 rounded-full ${config.dot}`} />
-                      <span className="text-sm text-gray-600">{config.label}</span>
+                      <span className="text-sm text-gray-300">{config.label}</span>
                     </div>
                   ))}
                 </>
               ) : (
                 <>
-                  <span className="text-sm font-bold text-gray-700">Storage Tier:</span>
+                  <span className="text-sm font-bold text-gray-300">Storage Tier:</span>
                   {Object.entries(tierColors).map(([tier, config]) => (
                     <div key={tier} className="flex items-center gap-2">
                       <div className={`w-3 h-3 rounded-full ${config.bg}`} />
-                      <span className="text-sm text-gray-600">{config.label}</span>
+                      <span className="text-sm text-gray-300">{config.label}</span>
                     </div>
                   ))}
                 </>
@@ -682,12 +683,12 @@ export default function Compare() {
         {/* ============================================================= */}
         {viewMode === 'matrix' && (
           <section className="mb-8">
-            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-lg">
+            <div className="outta-card outta-table overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="min-w-full">
                   <thead>
-                    <tr className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
-                      <th className="px-5 py-4 text-left text-sm font-bold text-gray-900 w-48">Phase</th>
+                    <tr className="bg-white/[0.04] border-b border-white/10">
+                      <th className="px-5 py-4 text-left text-sm font-bold text-white w-48">Phase</th>
                       {workloads.map((wl) => (
                         <th key={wl.key} className="px-5 py-4 text-center">
                           <Link
@@ -703,10 +704,10 @@ export default function Compare() {
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-white/5">
                     {phases.map((phase) => (
-                      <tr key={phase} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-5 py-3 text-sm font-semibold text-gray-900">{phase}</td>
+                      <tr key={phase} className="hover:bg-raspberry/5 transition-colors">
+                        <td className="px-5 py-3 text-sm font-semibold text-white">{phase}</td>
                         {workloads.map((wl) => {
                           const cell = matrix[phase][wl.key]
                           const config = roleConfig[cell.role]
@@ -716,7 +717,7 @@ export default function Compare() {
                               <button
                                 onClick={() => setSelectedCell({ phase, workload: wl.key })}
                                 className={`w-full px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${config.bg} ${config.text} hover:shadow-lg hover:scale-[1.03] ${
-                                  isSelected ? 'ring-2 ring-offset-2 ring-gray-900 scale-105' : ''
+                                  isSelected ? 'ring-2 ring-offset-2 ring-offset-[#0a0a0f] ring-white scale-105' : ''
                                 }`}
                               >
                                 {cell.short}
@@ -738,12 +739,12 @@ export default function Compare() {
         {/* ============================================================= */}
         {viewMode === 'tier-heatmap' && (
           <section className="mb-8">
-            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-lg">
+            <div className="outta-card outta-table overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="min-w-full">
                   <thead>
-                    <tr className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
-                      <th className="px-5 py-4 text-left text-sm font-bold text-gray-900 w-48">Phase</th>
+                    <tr className="bg-white/[0.04] border-b border-white/10">
+                      <th className="px-5 py-4 text-left text-sm font-bold text-white w-48">Phase</th>
                       {workloads.map((wl) => (
                         <th key={wl.key} className={`px-5 py-4 text-center text-sm font-bold ${wl.color}`}>
                           {wl.label}
@@ -751,10 +752,10 @@ export default function Compare() {
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-white/5">
                     {phases.map((phase) => (
-                      <tr key={phase} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-5 py-3 text-sm font-semibold text-gray-900">{phase}</td>
+                      <tr key={phase} className="hover:bg-raspberry/5 transition-colors">
+                        <td className="px-5 py-3 text-sm font-semibold text-white">{phase}</td>
                         {workloads.map((wl) => {
                           const cell = matrix[phase][wl.key]
                           const tiers = Array.isArray(cell.tier) ? cell.tier : (cell.tier !== undefined && cell.role !== 'not-in-path' ? [cell.tier] : [])
@@ -794,7 +795,7 @@ export default function Compare() {
                   ;(tiers as number[]).forEach((t) => tierCounts[t]++)
                 })
                 return (
-                  <div key={wl.key} className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div key={wl.key} className="outta-card p-4">
                     <h4 className={`text-sm font-bold ${wl.color} mb-3`}>{wl.label}</h4>
                     <div className="space-y-1.5">
                       {[0, 1, 2, 3].map((t) => (
@@ -802,7 +803,7 @@ export default function Compare() {
                           <span className={`w-5 h-5 rounded text-[10px] font-bold text-white flex items-center justify-center ${tierColors[t].bg}`}>
                             T{t}
                           </span>
-                          <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full ${tierColors[t].bg}`}
                               style={{ width: `${(tierCounts[t] / phases.length) * 100}%` }}
@@ -825,14 +826,14 @@ export default function Compare() {
         {viewMode === 'lifecycle' && (
           <section className="mb-8 space-y-6">
             {workloads.map((wl) => (
-              <div key={wl.key} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-                <div className={`px-5 py-3 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white`}>
+              <div key={wl.key} className="outta-card outta-table overflow-hidden">
+                <div className={`px-5 py-3 border-b border-white/10 bg-white/[0.04]`}>
                   <h3 className={`text-base font-bold ${wl.color}`}>{wl.label} — I/O Profile by Phase</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm">
                     <thead>
-                      <tr className="text-left text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                      <tr className="text-left text-xs text-gray-400 uppercase tracking-wider border-b border-white/10">
                         <th className="px-5 py-2.5">Phase</th>
                         <th className="px-5 py-2.5">I/O Pattern</th>
                         <th className="px-5 py-2.5">Volume</th>
@@ -841,20 +842,20 @@ export default function Compare() {
                         <th className="px-5 py-2.5">Role</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody className="divide-y divide-white/5">
                       {phases.map((phase) => {
                         const cell = matrix[phase][wl.key]
                         const tiers = Array.isArray(cell.tier) ? cell.tier : (cell.role !== 'not-in-path' && cell.tier !== undefined ? [cell.tier] : [])
                         return (
                           <tr
                             key={phase}
-                            className={`hover:bg-gray-50/50 transition-colors ${cell.role === 'not-in-path' ? 'opacity-50' : ''}`}
+                            className={`hover:bg-raspberry/5 transition-colors ${cell.role === 'not-in-path' ? 'opacity-50' : ''}`}
                           >
-                            <td className="px-5 py-2.5 font-medium text-gray-900 whitespace-nowrap">{phase}</td>
-                            <td className="px-5 py-2.5 text-gray-600">{cell.ioProfile}</td>
-                            <td className="px-5 py-2.5 text-gray-600 whitespace-nowrap">{cell.volume}</td>
+                            <td className="px-5 py-2.5 font-medium text-white whitespace-nowrap">{phase}</td>
+                            <td className="px-5 py-2.5 text-gray-300">{cell.ioProfile}</td>
+                            <td className="px-5 py-2.5 text-gray-300 whitespace-nowrap">{cell.volume}</td>
                             <td className="px-5 py-2.5">
-                              <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-700 break-all">
+                              <code className="text-xs bg-white/10 px-1.5 py-0.5 rounded text-raspberry-light break-all">
                                 {cell.s3Path}
                               </code>
                             </td>
@@ -889,11 +890,11 @@ export default function Compare() {
         {/* ============================================================= */}
         {selectedCell && selectedData ? (
           <section className="mb-8 animate-scale-in">
-            <div className="bg-white rounded-2xl border-2 border-raspberry/30 p-6 shadow-lg shadow-raspberry/10">
+            <div className="outta-card border-2 border-raspberry/40 p-6">
               {/* Header */}
               <div className="flex items-start justify-between mb-5">
                 <div>
-                  <h3 className="font-bold text-gray-900 text-lg mb-1">
+                  <h3 className="font-bold text-white text-lg mb-1">
                     {selectedCell.phase} — {workloads.find(w => w.key === selectedCell.workload)?.label}
                   </h3>
                   <div className="flex flex-wrap items-center gap-2">
@@ -909,7 +910,7 @@ export default function Compare() {
                 </div>
                 <button
                   onClick={() => setSelectedCell(null)}
-                  className="flex-shrink-0 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="flex-shrink-0 p-2 hover:bg-white/10 rounded-lg transition-colors"
                 >
                   <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -918,31 +919,31 @@ export default function Compare() {
               </div>
 
               {/* Description */}
-              <p className="text-gray-600 leading-relaxed mb-5">{selectedData.detail}</p>
+              <p className="text-gray-300 leading-relaxed mb-5">{selectedData.detail}</p>
 
               {/* Detail Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">I/O Pattern</div>
-                  <div className="text-sm font-medium text-gray-900">{selectedData.ioProfile}</div>
+                <div className="outta-inset p-4">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">I/O Pattern</div>
+                  <div className="text-sm font-medium text-white">{selectedData.ioProfile}</div>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Data Volume</div>
-                  <div className="text-sm font-medium text-gray-900">{selectedData.volume}</div>
+                <div className="outta-inset p-4">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Data Volume</div>
+                  <div className="text-sm font-medium text-white">{selectedData.volume}</div>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Key Apps</div>
+                <div className="outta-inset p-4">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Key Apps</div>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedData.apps.length > 0 ? selectedData.apps.map((app) => (
-                      <span key={app} className="px-2 py-0.5 text-xs bg-gray-200 rounded-full text-gray-700 font-medium">{app}</span>
+                      <span key={app} className="px-2 py-0.5 text-xs bg-white/10 rounded-full text-gray-200 font-medium">{app}</span>
                     )) : <span className="text-sm text-gray-400">—</span>}
                   </div>
                 </div>
               </div>
 
               {/* S3 Path */}
-              <div className="bg-gray-900 rounded-xl p-4 mb-4">
-                <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">S3 Path</div>
+              <div className="outta-code rounded-xl p-4 mb-4">
+                <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">S3 Path</div>
                 <code className="text-sm text-emerald-400 font-mono break-all">{selectedData.s3Path}</code>
               </div>
 
@@ -952,33 +953,33 @@ export default function Compare() {
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-bold text-raspberry uppercase tracking-wider">MinIO AIStor Feature</span>
                   </div>
-                  <p className="text-sm text-gray-700">{selectedData.minioFeature}</p>
+                  <p className="text-sm text-gray-300">{selectedData.minioFeature}</p>
                 </div>
               )}
 
               {/* Whitepaper Citation */}
               {selectedData.paperRef && (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div className="bg-accent-blue/10 border border-accent-blue/30 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-1">
                     <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
-                    <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">Whitepaper Reference</span>
+                    <span className="text-xs font-bold text-blue-300 uppercase tracking-wider">Whitepaper Reference</span>
                   </div>
-                  <p className="text-xs text-blue-800 italic leading-relaxed">{selectedData.paperRef}</p>
+                  <p className="text-xs text-blue-200 italic leading-relaxed">{selectedData.paperRef}</p>
                 </div>
               )}
             </div>
           </section>
         ) : viewMode !== 'lifecycle' && (
           <section className="mb-8">
-            <div className="bg-gray-50 rounded-2xl border border-gray-200 p-8 text-center">
-              <div className="w-12 h-12 mx-auto mb-4 bg-gray-200 rounded-xl flex items-center justify-center">
+            <div className="outta-card p-8 text-center">
+              <div className="w-12 h-12 mx-auto mb-4 bg-white/10 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
                 </svg>
               </div>
-              <p className="text-gray-500 font-medium">Click any cell in the table to see full details — S3 paths, I/O profiles, apps, MinIO AIStor features, and whitepaper citations.</p>
+              <p className="text-gray-300 font-medium">Click any cell in the table to see full details — S3 paths, I/O profiles, apps, MinIO AIStor features, and whitepaper citations.</p>
             </div>
           </section>
         )}
@@ -987,7 +988,7 @@ export default function Compare() {
         {/* THE LIFECYCLE — How workloads connect                          */}
         {/* ============================================================= */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">The Model Lifecycle</h2>
+          <h2 className="text-2xl font-bold gradient-text mb-6">The Model Lifecycle</h2>
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl border border-white/10 p-8 shadow-2xl">
             <div className="max-w-4xl mx-auto">
               {/* Circular flow */}
@@ -1042,8 +1043,8 @@ export default function Compare() {
         {/* KEY NUMBERS — The data that matters                           */}
         {/* ============================================================= */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Key Numbers at a Glance</h2>
-          <p className="text-sm text-gray-500 mb-6">Reference numbers from the 8-Node AIStor Reference Cluster (minio-core-v2 source of truth) — scaling linearly with node count</p>
+          <h2 className="text-2xl font-bold gradient-text mb-2">Key Numbers at a Glance</h2>
+          <p className="text-sm text-gray-400 mb-6">Reference numbers from the 8-Node AIStor Reference Cluster (minio-core-v2 source of truth) — scaling linearly with node count</p>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
             {[
               { number: '~103.5 GB/s', label: 'Aggregate GET', sub: '8-node reference', color: 'text-raspberry' },
@@ -1055,10 +1056,10 @@ export default function Compare() {
               { number: '~100MB', label: 'LoRA adapter', sub: '5,000x smaller', color: 'text-blue-500' },
               { number: 'Single binary', label: 'MinIO MemKV', sub: 'ARM64-native in STX', color: 'text-emerald-500' },
             ].map((stat, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-200 p-3 text-center hover:shadow-md transition-shadow">
+              <div key={i} className="outta-card p-3 text-center">
                 <div className={`text-lg font-bold ${stat.color} mb-0.5`}>{stat.number}</div>
-                <div className="text-[11px] font-semibold text-gray-900 mb-0.5">{stat.label}</div>
-                <div className="text-[10px] text-gray-500">{stat.sub}</div>
+                <div className="text-[11px] font-semibold text-white mb-0.5">{stat.label}</div>
+                <div className="text-[10px] text-gray-400">{stat.sub}</div>
               </div>
             ))}
           </div>
@@ -1068,8 +1069,8 @@ export default function Compare() {
         {/* MinIO AIStor ENTERPRISE FEATURES                              */}
         {/* ============================================================= */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">MinIO AIStor Enterprise Features</h2>
-          <p className="text-sm text-gray-500 mb-6">Features mapped to AI pipeline phases — from the whitepaper</p>
+          <h2 className="text-2xl font-bold gradient-text mb-2">MinIO AIStor Enterprise Features</h2>
+          <p className="text-sm text-gray-400 mb-6">Features mapped to AI pipeline phases — from the whitepaper</p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { feature: 'MinIO Cache', desc: 'Distributed shared DRAM cache for ultra-high-performance reads. Prevents GPU starvation during DataLoader streaming.', phases: ['Active Compute Loop', 'Model Registry'], icon: '⚡' },
@@ -1084,15 +1085,15 @@ export default function Compare() {
               { feature: 'Active-Active Replication', desc: 'Near-synchronous multi-site replication. DR, geographic distribution, and multi-cluster model registry sync.', phases: ['Model Registry', 'Feedback Loop'], icon: '🔄' },
               { feature: 'BitRot Protection', desc: 'HighwayHash at >10 GB/s per core with SIMD. Verifies integrity on every read and write. Silent corruption impossible.', phases: ['Checkpointing', 'Model Registry'], icon: '✅' },
             ].map((item, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
+              <div key={i} className="outta-card p-5">
                 <div className="flex items-center gap-2.5 mb-2">
                   <span className="text-xl">{item.icon}</span>
-                  <h4 className="font-bold text-gray-900 text-sm">{item.feature}</h4>
+                  <h4 className="font-bold text-white text-sm">{item.feature}</h4>
                 </div>
-                <p className="text-xs text-gray-600 leading-relaxed mb-3">{item.desc}</p>
+                <p className="text-xs text-gray-300 leading-relaxed mb-3">{item.desc}</p>
                 <div className="flex flex-wrap gap-1">
                   {item.phases.map((ph) => (
-                    <span key={ph} className="px-2 py-0.5 text-[10px] bg-raspberry/10 text-raspberry rounded-full font-medium">{ph}</span>
+                    <span key={ph} className="px-2 py-0.5 text-[10px] bg-raspberry/15 text-raspberry-light rounded-full font-medium">{ph}</span>
                   ))}
                 </div>
               </div>
@@ -1104,12 +1105,12 @@ export default function Compare() {
         {/* STORAGE TIER USAGE ACROSS WORKLOADS                           */}
         {/* ============================================================= */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Storage Tier Usage by Workload</h2>
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+          <h2 className="text-2xl font-bold gradient-text mb-6">Storage Tier Usage by Workload</h2>
+          <div className="outta-card outta-table overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200 text-left text-xs text-gray-500 uppercase tracking-wider">
+                  <tr className="bg-white/[0.04] border-b border-white/10 text-left text-xs text-gray-400 uppercase tracking-wider">
                     <th className="px-5 py-3">Tier</th>
                     <th className="px-5 py-3">Spec</th>
                     <th className="px-5 py-3">MinIO AIStor?</th>
@@ -1119,7 +1120,7 @@ export default function Compare() {
                     <th className="px-5 py-3 text-emerald-600">Inference</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-white/5">
                   {[
                     {
                       tier: 0, label: 'NVMe Local Bus / Direct-Attach (DirectPV/K8s)', spec: '<100 us, Node-Local',
@@ -1166,25 +1167,25 @@ export default function Compare() {
                     const tierLabel = typeof row.tier === 'number' ? `T${row.tier}` : 'G3.5'
                     const isMinIO = row.minio !== 'NOT MinIO AIStor'
                     return (
-                    <tr key={String(row.tier)} className="hover:bg-gray-50/50">
+                    <tr key={String(row.tier)} className="hover:bg-raspberry/5">
                       <td className="px-5 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <span className={`w-7 h-7 rounded-lg text-xs font-bold text-white flex items-center justify-center ${tierColor}`}>
                             {tierLabel}
                           </span>
-                          <span className="font-semibold text-gray-900">{row.label}</span>
+                          <span className="font-semibold text-white">{row.label}</span>
                         </div>
                       </td>
-                      <td className="px-5 py-3 text-xs text-gray-500 whitespace-nowrap">{row.spec}</td>
+                      <td className="px-5 py-3 text-xs text-gray-400 whitespace-nowrap">{row.spec}</td>
                       <td className="px-5 py-3 whitespace-nowrap">
-                        <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${!isMinIO ? 'bg-gray-200 text-gray-600' : 'bg-raspberry/10 text-raspberry'}`}>
+                        <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${!isMinIO ? 'bg-white/10 text-gray-300' : 'bg-raspberry/15 text-raspberry-light'}`}>
                           {row.minio}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-gray-700">{row.training}</td>
-                      <td className="px-5 py-3 text-gray-700">{row.rag}</td>
-                      <td className="px-5 py-3 text-gray-700">{row.fineTuning}</td>
-                      <td className="px-5 py-3 text-gray-700">{row.inference}</td>
+                      <td className="px-5 py-3 text-gray-300">{row.training}</td>
+                      <td className="px-5 py-3 text-gray-300">{row.rag}</td>
+                      <td className="px-5 py-3 text-gray-300">{row.fineTuning}</td>
+                      <td className="px-5 py-3 text-gray-300">{row.inference}</td>
                     </tr>
                     )
                   })}
@@ -1198,66 +1199,66 @@ export default function Compare() {
         {/* BENCHMARK COMPARISON                                          */}
         {/* ============================================================= */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Benchmark Comparison</h2>
-          <p className="text-sm text-gray-500 mb-6">Performance data from the MinIO whitepaper</p>
+          <h2 className="text-2xl font-bold gradient-text mb-2">Benchmark Comparison</h2>
+          <p className="text-sm text-gray-400 mb-6">Performance data from the MinIO whitepaper</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Cluster benchmarks */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6">
-              <h3 className="font-bold text-gray-900 mb-4">MinIO AIStor Reference Cluster</h3>
+            <div className="outta-card p-6">
+              <h3 className="font-bold text-white mb-4">MinIO AIStor Reference Cluster</h3>
               <div className="space-y-4">
                 {[
                   { cluster: '8-Node Reference (per node)', get: '~12.9 GB/s', put: '—', note: '400G ConnectX-7 per node' },
                   { cluster: '8-Node Reference (aggregate)', get: '~103.5 GB/s', put: '~34.4 GB/s', note: '4.4 PB usable; encryption negligible overhead' },
                   { cluster: 'Scale-out', get: 'Linear with nodes', put: 'Linear with nodes', note: 'Switch fabric supports growth (up to 32 nodes)' },
                 ].map((row) => (
-                  <div key={row.cluster} className="bg-gray-50 rounded-xl p-4">
-                    <div className="font-semibold text-gray-900 text-sm mb-2">{row.cluster}</div>
+                  <div key={row.cluster} className="outta-inset p-4">
+                    <div className="font-semibold text-white text-sm mb-2">{row.cluster}</div>
                     <div className="grid grid-cols-2 gap-3 mb-2">
                       <div>
-                        <span className="text-xs text-gray-500">GET</span>
+                        <span className="text-xs text-gray-400">GET</span>
                         <div className="text-lg font-bold text-raspberry">{row.get}</div>
                       </div>
                       <div>
-                        <span className="text-xs text-gray-500">PUT</span>
+                        <span className="text-xs text-gray-400">PUT</span>
                         <div className="text-lg font-bold text-amber-500">{row.put}</div>
                       </div>
                     </div>
-                    <p className="text-[11px] text-gray-500 italic">{row.note}</p>
+                    <p className="text-[11px] text-gray-400 italic">{row.note}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* HDFS comparison */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6">
-              <h3 className="font-bold text-gray-900 mb-4">MinIO vs HDFS (from whitepaper)</h3>
+            <div className="outta-card p-6">
+              <h3 className="font-bold text-white mb-4">MinIO vs HDFS (from whitepaper)</h3>
               <div className="space-y-4">
                 {[
                   { test: 'Terasort', minio: '820s', hdfs: '1,005s', faster: '22.5%' },
                   { test: 'Sort', minio: '793s', hdfs: '1,573s', faster: '98.3%' },
                   { test: 'WordCount', minio: '787s', hdfs: '1,100s', faster: '39.7%' },
                 ].map((row) => (
-                  <div key={row.test} className="bg-gray-50 rounded-xl p-4">
+                  <div key={row.test} className="outta-inset p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-gray-900 text-sm">{row.test}</span>
-                      <span className="px-2 py-0.5 text-xs font-bold bg-emerald-100 text-emerald-700 rounded-full">
+                      <span className="font-semibold text-white text-sm">{row.test}</span>
+                      <span className="px-2 py-0.5 text-xs font-bold bg-emerald-500/15 text-emerald-300 rounded-full">
                         {row.faster} faster
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <span className="text-xs text-gray-500">MinIO</span>
+                        <span className="text-xs text-gray-400">MinIO</span>
                         <div className="text-base font-bold text-raspberry">{row.minio}</div>
                       </div>
                       <div>
-                        <span className="text-xs text-gray-500">HDFS</span>
-                        <div className="text-base font-bold text-gray-500">{row.hdfs}</div>
+                        <span className="text-xs text-gray-400">HDFS</span>
+                        <div className="text-base font-bold text-gray-300">{row.hdfs}</div>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <p className="text-[11px] text-gray-500 italic mt-4">Whitepaper: "MinIO offers HDFS compatibility... customers can simply redirect their applications"</p>
+              <p className="text-[11px] text-gray-400 italic mt-4">Whitepaper: "MinIO offers HDFS compatibility... customers can simply redirect their applications"</p>
             </div>
           </div>
         </section>
@@ -1266,7 +1267,7 @@ export default function Compare() {
         {/* KEY TAKEAWAYS                                                 */}
         {/* ============================================================= */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Key Takeaways</h2>
+          <h2 className="text-2xl font-bold gradient-text mb-6">Key Takeaways</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
               {
@@ -1294,7 +1295,7 @@ export default function Compare() {
                 shadow: 'shadow-cyan-500/20',
               },
             ].map((card, index) => (
-              <div key={index} className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-shadow duration-300">
+              <div key={index} className="outta-card p-6">
                 <div className="flex items-start gap-4">
                   <div className={`flex-shrink-0 w-12 h-12 bg-gradient-to-br ${card.gradient} rounded-xl flex items-center justify-center shadow-lg ${card.shadow}`}>
                     <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1302,8 +1303,8 @@ export default function Compare() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900 mb-2">{card.title}</h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">{card.description}</p>
+                    <h3 className="font-bold text-white mb-2">{card.title}</h3>
+                    <p className="text-gray-300 text-sm leading-relaxed">{card.description}</p>
                   </div>
                 </div>
               </div>
