@@ -3,29 +3,40 @@ import { useEffect, type ReactNode } from 'react'
 // =============================================================================
 // DetailDock — keeps a detail panel ALWAYS in view next to an interactive grid.
 //
-//   Desktop (>= lg): renders inline as a sticky right-rail (the parent lays it
-//   out in a 2-col grid). Click tile after tile and watch it update in place,
-//   zero scrolling.
+//   Desktop (>= lg):
+//     placement="rail" (default) — renders inline as a sticky right-rail (the
+//       parent lays it out in a 2-col grid). Click tile after tile and watch it
+//       update in place, zero scrolling. Shows an empty-state when nothing is
+//       selected so the layout never collapses.
+//     placement="below" — renders inline full-width BELOW the grid, only while
+//       something is selected (collapses to nothing otherwise). Lets the grid
+//       above use the full canvas width. Still no scroll-jump — it expands in
+//       place right under the tiles.
 //
 //   Mobile (< lg): renders as a fixed, centered bottom-sheet / modal with a
 //   backdrop — so the detail is always on-screen the instant you tap, never
-//   below the fold.
+//   below the fold. (Same for both placements.)
 //
-// Escape key and backdrop click both close (mobile). The desktop rail shows an
-// empty-state prompt when nothing is selected so the layout never collapses.
+// Escape key and backdrop click both close (mobile).
 // =============================================================================
 
 interface DetailDockProps {
   open: boolean
   onClose: () => void
   children: ReactNode
-  /** Shown in the desktop rail when nothing is selected. */
+  /** Shown in the desktop rail when nothing is selected (rail placement only). */
   emptyState?: ReactNode
   /** Changing this re-triggers the entrance animation (e.g. the selected id). */
   contentKey?: string | number
+  /**
+   * Desktop layout:
+   *   'rail'  — sticky right-rail beside the grid (default)
+   *   'below' — full-width panel beneath the grid, collapsed when closed
+   */
+  placement?: 'rail' | 'below'
 }
 
-export default function DetailDock({ open, onClose, children, emptyState, contentKey }: DetailDockProps) {
+export default function DetailDock({ open, onClose, children, emptyState, contentKey, placement = 'rail' }: DetailDockProps) {
   // Escape-to-close (only relevant while the mobile sheet is open).
   useEffect(() => {
     if (!open) return
@@ -39,15 +50,24 @@ export default function DetailDock({ open, onClose, children, emptyState, conten
   return (
     <>
       {/* ===== Desktop: sticky right-rail (>= lg) ===== */}
-      <div className="hidden lg:block">
-        <div className="sticky top-24">
-          {open ? (
-            <div key={contentKey} className="animate-scale-in">{children}</div>
-          ) : (
-            emptyState ?? <DefaultEmptyState />
-          )}
+      {placement === 'rail' && (
+        <div className="hidden lg:block">
+          <div className="sticky top-24">
+            {open ? (
+              <div key={contentKey} className="animate-scale-in">{children}</div>
+            ) : (
+              emptyState ?? <DefaultEmptyState />
+            )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* ===== Desktop: full-width panel below the grid (>= lg) ===== */}
+      {placement === 'below' && open && (
+        <div className="hidden lg:block">
+          <div key={contentKey} className="animate-slide-down">{children}</div>
+        </div>
+      )}
 
       {/* ===== Mobile: fixed bottom-sheet / modal (< lg) ===== */}
       {open && (

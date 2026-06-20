@@ -18,6 +18,8 @@ export default function Explorer() {
   const viewParam = searchParams.get('view') as ViewType | null
   const initialView: ViewType = viewParam && validViews.includes(viewParam) ? viewParam : 'reference'
   const [activeView, setActiveView] = useState<ViewType>(initialView)
+  // Primer is collapsed by default — revealed via the toggle in the Reference Architecture header.
+  const [showPrimer, setShowPrimer] = useState(false)
 
   // Sync URL → state when query param changes (e.g. back/forward navigation)
   useEffect(() => {
@@ -140,8 +142,15 @@ export default function Explorer() {
         <section className="mb-12">
           {activeView === 'reference' && (
             <>
-              <AiMlDlPrimer />
-              <ReferenceArchitecture />
+              {showPrimer && (
+                <div className="animate-slide-down">
+                  <AiMlDlPrimer />
+                </div>
+              )}
+              <ReferenceArchitecture
+                showPrimer={showPrimer}
+                onTogglePrimer={() => setShowPrimer((v) => !v)}
+              />
             </>
           )}
           {activeView === 'storage-layout' && <StorageLayoutExplorer />}
