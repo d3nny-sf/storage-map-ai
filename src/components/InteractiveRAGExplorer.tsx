@@ -616,7 +616,7 @@ export default function InteractiveRAGExplorer() {
 
         {/* Main Diagram */}
         <div className="relative p-6 overflow-x-auto" style={{ minHeight: '660px' }}>
-          <svg viewBox="0 0 1080 620" className="w-full min-w-[1000px]">
+          <svg viewBox="0 0 1080 670" className="w-full min-w-[1000px]">
             <defs>
               <linearGradient id="ragStorageGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#374151" />
@@ -665,8 +665,8 @@ export default function InteractiveRAGExplorer() {
 
             {/* Divider line between ingestion and query side */}
             <line x1="730" y1="20" x2="730" y2="590" stroke="#4B5563" strokeWidth="1" strokeDasharray="8,4" opacity="0.5" />
-            <text x="380" y="608" textAnchor="middle" fill="#6B7280" fontSize="10">INGESTION (Batch)</text>
-            <text x="905" y="608" textAnchor="middle" fill="#6B7280" fontSize="10">QUERY (Real-time)</text>
+            <text x="380" y="650" textAnchor="middle" fill="#9CA3AF" fontSize="15" fontWeight="600" letterSpacing="0.05em">INGESTION (Batch)</text>
+            <text x="905" y="650" textAnchor="middle" fill="#9CA3AF" fontSize="15" fontWeight="600" letterSpacing="0.05em">QUERY (Real-time)</text>
 
             {/* Flow Paths */}
             {flowPaths.map(flow => {
@@ -791,8 +791,8 @@ export default function InteractiveRAGExplorer() {
               )
             })}
 
-            {/* Current Phase Indicator */}
-            <text x="540" y="602" textAnchor="middle" fill="#E5E7EB" fontSize="24" fontWeight="700">
+            {/* Current Phase Indicator — own row, clear of the column headers */}
+            <text x="540" y="618" textAnchor="middle" fill="#E5E7EB" fontSize="24" fontWeight="700">
               Phase {currentPhase}: {phases[currentPhase - 1]?.name}
             </text>
           </svg>
