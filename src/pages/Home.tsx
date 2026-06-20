@@ -13,8 +13,9 @@ const pipelines = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
       </svg>
     ),
-    gradient: 'from-raspberry/20 to-orange-500/20',
-    borderColor: 'group-hover:border-raspberry',
+    glow: 'rgba(233,26,69,0.85)',
+    glow2: 'rgba(255,107,138,0.6)',
+    iconColor: 'text-raspberry-light',
   },
   {
     id: 'rag',
@@ -28,8 +29,9 @@ const pipelines = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zm3.75 11.625a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
       </svg>
     ),
-    gradient: 'from-amber-500/20 to-yellow-500/20',
-    borderColor: 'group-hover:border-amber-500',
+    glow: 'rgba(245,158,11,0.85)',
+    glow2: 'rgba(251,191,36,0.6)',
+    iconColor: 'text-amber-400',
   },
   {
     id: 'fine-tuning',
@@ -43,8 +45,9 @@ const pipelines = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
       </svg>
     ),
-    gradient: 'from-blue-500/20 to-cyan-500/20',
-    borderColor: 'group-hover:border-blue-500',
+    glow: 'rgba(59,130,246,0.85)',
+    glow2: 'rgba(96,165,250,0.6)',
+    iconColor: 'text-blue-400',
   },
   {
     id: 'inference',
@@ -58,8 +61,9 @@ const pipelines = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z" />
       </svg>
     ),
-    gradient: 'from-emerald-500/20 to-green-500/20',
-    borderColor: 'group-hover:border-emerald-500',
+    glow: 'rgba(20,184,166,0.85)',
+    glow2: 'rgba(45,212,191,0.6)',
+    iconColor: 'text-teal-300',
   },
 ]
 
@@ -73,59 +77,88 @@ const intensityConfig: Record<string, { bg: string; text: string; label: string 
 export default function Home() {
   return (
     <div>
-      {/* Hero Section */}
-      <section className="relative bg-dark text-white py-12 lg:py-16 overflow-hidden">
-        {/* Animated background */}
-        <div className="absolute inset-0 animated-gradient" />
-        
-        {/* Decorative orbs */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-raspberry/20 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/4" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/15 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/4" />
-        
+      {/* Hero Section — StarGazer */}
+      <section className="relative cosmos-bg text-white py-16 lg:py-24 overflow-hidden">
+        {/* Twinkling starfield */}
+        <div className="starfield" />
+
+        {/* Drifting aurora blobs */}
+        <div className="aurora bg-raspberry/30 w-[520px] h-[520px] -top-32 -right-24" />
+        <div className="aurora bg-accent-blue/25 w-[420px] h-[420px] -bottom-40 -left-24" style={{ animationDelay: '-6s' }} />
+        <div className="aurora bg-accent-purple/20 w-[360px] h-[360px] top-1/3 left-1/2" style={{ animationDelay: '-11s' }} />
+
         {/* Grid pattern overlay */}
-        <div className="absolute inset-0 pattern-grid opacity-50" />
-        
+        <div className="absolute inset-0 pattern-grid opacity-40" />
+        {/* Vignette to seat the content */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent" />
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl">
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+            {/* Eyebrow chip */}
+            <div
+              className="inline-flex items-center gap-2 mb-5 px-3 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-xs font-medium text-gray-300 animate-slide-up"
+              style={{ animationDelay: '0.05s', animationFillMode: 'both' }}
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-raspberry opacity-75 animate-ping" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-raspberry" />
+              </span>
+              Object storage, mapped across every AI pipeline
+            </div>
+
+            <h1
+              className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-5 animate-slide-up"
+              style={{ animationDelay: '0.1s', animationFillMode: 'both' }}
+            >
               The{' '}
-              <span className="gradient-text">AI Storage</span>{' '}
+              <span className="gradient-text drop-shadow-[0_0_25px_rgba(233,26,69,0.45)]">AI Storage</span>{' '}
               Map
             </h1>
-            
-            <p className="text-lg text-gray-400 mb-6 leading-relaxed max-w-3xl animate-slide-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+
+            <p
+              className="text-lg lg:text-xl text-gray-300 mb-8 leading-relaxed max-w-3xl animate-slide-up"
+              style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
+            >
               A technical reference for where object storage actually lives in AI/ML pipelines.
-              Every phase mapped. Every I/O pattern explained.
+              <span className="text-white font-medium"> Every phase mapped. Every I/O pattern explained.</span>
             </p>
-            
-            <div className="flex flex-wrap gap-4 animate-slide-up" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
+
+            <div
+              className="flex flex-wrap gap-4 animate-slide-up"
+              style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
+            >
               <Link
                 to="/explorer"
-                className="btn-primary inline-flex items-center px-8 py-4 text-white font-semibold rounded-xl transition-all"
+                className="btn-primary group inline-flex items-center px-8 py-4 text-white font-semibold rounded-xl transition-all"
               >
                 Start Here
-                <svg className="ml-2 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="ml-2 w-5 h-5 nudge-x" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </Link>
               <Link
                 to="/glossary"
-                className="btn-secondary inline-flex items-center px-8 py-4 text-white font-semibold rounded-xl transition-all"
+                className="inline-flex items-center px-8 py-4 font-semibold rounded-xl text-white border border-white/15 bg-white/5 backdrop-blur-sm hover:bg-white/10 hover:border-white/25 transition-all"
               >
                 Glossary & Reference
               </Link>
             </div>
           </div>
-          
-          {/* Floating decorative elements */}
+
+          {/* Floating medallion — glowing glass "4 Pipelines" */}
           <div className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2">
-            <div className="relative w-48 h-48">
-              <div className="absolute inset-0 border-2 border-raspberry/20 rounded-2xl rotate-12 animate-pulse-glow" />
-              <div className="absolute inset-4 border border-white/10 rounded-xl -rotate-6" />
-              <div className="absolute inset-8 bg-gradient-to-br from-raspberry/10 to-transparent rounded-lg backdrop-blur-sm border border-white/5 flex items-center justify-center">
+            <div className="relative w-56 h-56 animate-float">
+              {/* Rotating conic halo behind */}
+              <div className="conic-halo" />
+              {/* Orbit rings */}
+              <div className="absolute inset-0 border border-white/10 rounded-full" />
+              <div className="absolute inset-3 border border-raspberry/20 rounded-2xl rotate-12 animate-pulse-glow" />
+              <div className="absolute inset-6 border border-white/10 rounded-2xl -rotate-6" />
+              {/* Glass core */}
+              <div className="absolute inset-10 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_0_50px_-8px_rgba(233,26,69,0.6)] flex items-center justify-center">
                 <div className="text-center">
-                  <div className="text-5xl font-bold gradient-text">4</div>
-                  <div className="text-sm text-gray-400 mt-1">Pipelines</div>
+                  <div className="text-6xl font-extrabold gradient-text drop-shadow-[0_0_20px_rgba(233,26,69,0.5)]">4</div>
+                  <div className="text-xs uppercase tracking-[0.2em] text-gray-400 mt-1">Pipelines</div>
                 </div>
               </div>
             </div>
@@ -133,16 +166,34 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pipeline Cards */}
-      <section className="py-12 bg-gradient-to-b from-white to-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-8">
-            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">
-              Four Pipelines. Four Storage Stories.
-            </h2>
-            <p className="text-sm text-gray-500 sm:text-right">
-              Each AI workload puts storage in a different role. Click any card to explore the details.
-            </p>
+      {/* Pipeline Cards — StarGazer dazzle on a continuous cosmic canvas */}
+      <section className="relative cosmos-bg py-16 lg:py-20 overflow-hidden">
+        {/* Seam glow so the hero flows seamlessly into the cards */}
+        <div className="absolute -top-px inset-x-0 h-px bg-gradient-to-r from-transparent via-raspberry/40 to-transparent" />
+        <div className="aurora bg-accent-purple/15 w-[460px] h-[460px] top-1/4 -right-32" style={{ animationDelay: '-3s' }} />
+        <div className="aurora bg-raspberry/15 w-[380px] h-[380px] bottom-0 -left-28" style={{ animationDelay: '-9s' }} />
+        <div className="absolute inset-0 pattern-dots opacity-20" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+            <div>
+              <h2 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
+                Four Pipelines.{' '}
+                <span className="gradient-text drop-shadow-[0_0_18px_rgba(233,26,69,0.4)]">Four Storage Stories.</span>
+              </h2>
+              <p className="text-sm lg:text-base text-gray-400 mt-2 max-w-xl">
+                Each AI workload puts storage in a different role. Click any card to explore the details.
+              </p>
+            </div>
+            <Link
+              to="/compare"
+              className="group inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white border border-white/15 bg-white/5 backdrop-blur-sm hover:bg-white/10 hover:border-raspberry/50 transition-all whitespace-nowrap self-start sm:self-auto"
+            >
+              Compare all four
+              <svg className="w-4 h-4 nudge-x" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
@@ -150,76 +201,43 @@ export default function Home() {
               <Link
                 key={pipeline.id}
                 to={pipeline.path}
-                style={{ animationDelay: `${index * 100}ms` }}
-                className={`group relative bg-white rounded-2xl p-6 border-2 border-gray-100 ${pipeline.borderColor} transition-all duration-300 card-hover opacity-0 animate-scale-in`}
+                style={{
+                  animationDelay: `${index * 110}ms`,
+                  ['--card-glow' as string]: pipeline.glow,
+                  ['--card-glow-2' as string]: pipeline.glow2,
+                }}
+                className="dazzle-card group p-7 opacity-0 animate-scale-in"
               >
-                {/* Background gradient on hover */}
-                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${pipeline.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                
+                {/* Glow aura + crossing sheen */}
+                <div className="card-aura" />
+                <div className="card-sheen" />
+
                 <div className="relative flex items-start gap-5">
-                  <div className="flex-shrink-0 w-16 h-16 bg-gray-100 group-hover:bg-white/80 rounded-xl flex items-center justify-center text-gray-500 group-hover:text-raspberry transition-all duration-300 shadow-sm group-hover:shadow-lg">
+                  <div className={`dazzle-icon flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center ${pipeline.iconColor}`}>
                     {pipeline.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-gray-900 transition-colors">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-2 pr-8">
+                      <h3 className="text-xl lg:text-2xl font-bold text-white">
                         {pipeline.title}
                       </h3>
-                      <span className={`px-3 py-1 text-xs font-semibold rounded-full ${intensityConfig[pipeline.intensity].bg} ${intensityConfig[pipeline.intensity].text} shadow-sm`}>
+                      <span className={`px-3 py-1 text-xs font-semibold rounded-full ${intensityConfig[pipeline.intensity].bg} ${intensityConfig[pipeline.intensity].text} shadow-lg`}>
                         {intensityConfig[pipeline.intensity].label}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-500 mb-3 font-medium">{pipeline.subtitle}</p>
-                    <p className="text-gray-600 leading-relaxed">{pipeline.description}</p>
+                    <p className="text-sm text-gray-400 mb-3 font-medium uppercase tracking-wide">{pipeline.subtitle}</p>
+                    <p className="text-gray-300 leading-relaxed">{pipeline.description}</p>
                   </div>
                 </div>
-                
+
                 {/* Arrow indicator */}
-                <div className="absolute top-6 right-6 text-gray-300 group-hover:text-raspberry group-hover:translate-x-1 transition-all duration-300">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="absolute top-6 right-6 text-gray-500 group-hover:text-white transition-colors duration-300">
+                  <svg className="w-6 h-6 nudge-x" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
               </Link>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Bottom Line — slim closing band (the punchline, not a full screen) */}
-      <section className="relative py-10 bg-dark text-white overflow-hidden">
-        {/* Background elements */}
-        <div className="absolute inset-0 animated-gradient opacity-40" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-raspberry/15 rounded-full blur-[100px]" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-10">
-            {/* Icon + punchline */}
-            <div className="flex items-start gap-4 flex-1">
-              <div className="flex-shrink-0 w-11 h-11 bg-gradient-to-br from-raspberry to-raspberry-dark rounded-xl flex items-center justify-center shadow-lg shadow-raspberry/30">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-lg font-bold mb-1">The Bottom Line</h2>
-                <p className="text-sm text-gray-300 leading-relaxed">
-                  Object storage is the gravitational center of the AI data lifecycle — every pipeline, every phase, every workload.{' '}
-                  <span className="text-white font-medium">With the G3.5 context-memory layer, MinIO MemKV is now inside the inference loop itself</span>, keeping the KV cache resident for agentic and long-context workloads on NVIDIA's STX architecture.
-                </p>
-              </div>
-            </div>
-
-            {/* CTA */}
-            <Link
-              to="/compare"
-              className="btn-primary inline-flex items-center justify-center px-6 py-3.5 text-white font-semibold rounded-xl whitespace-nowrap transition-all flex-shrink-0"
-            >
-              Explore the Comparison Matrix
-              <svg className="ml-2 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
           </div>
         </div>
       </section>
