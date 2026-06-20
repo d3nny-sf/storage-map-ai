@@ -792,7 +792,7 @@ export default function InteractiveRAGExplorer() {
             })}
 
             {/* Current Phase Indicator */}
-            <text x="540" y="600" textAnchor="middle" fill="#9CA3AF" fontSize="12" fontWeight="500">
+            <text x="540" y="602" textAnchor="middle" fill="#E5E7EB" fontSize="24" fontWeight="700">
               Phase {currentPhase}: {phases[currentPhase - 1]?.name}
             </text>
           </svg>
