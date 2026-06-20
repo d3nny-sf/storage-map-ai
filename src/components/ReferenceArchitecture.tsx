@@ -484,8 +484,8 @@ function PipelineView({
 
       {/* Full-width square tile grid; detail expands below on select (no scroll-jump) */}
       <div className="space-y-6">
-        {/* Phase Cards — denser, squarer grid (3 across on desktop) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {/* Phase Cards — denser grid; widens to 4-up on the larger stage so the 11 phases pack tighter */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {phases.map((phase, idx) => (
             <button
               key={phase.id}

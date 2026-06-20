@@ -54,7 +54,7 @@ export default function StepperBar({
           stuck ? 'shadow-lg shadow-black/30' : ''
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[110rem] mx-auto px-4 sm:px-6 lg:px-10">
           {/* Progress bar */}
           <div className={`flex items-center gap-3 transition-all duration-300 ${stuck ? 'pt-2.5' : 'pt-4'}`}>
             <span className="text-xs font-semibold text-gray-400 tabular-nums whitespace-nowrap">
@@ -68,9 +68,9 @@ export default function StepperBar({
             </div>
           </div>
 
-          {/* Numbered step chips */}
+          {/* Numbered step chips — equal-width grid keeps all steps on one line */}
           <div
-            className={`flex flex-wrap gap-2 transition-all duration-300 ${
+            className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 transition-all duration-300 ${
               stuck ? 'py-2.5' : 'py-4'
             }`}
           >
@@ -82,8 +82,8 @@ export default function StepperBar({
                   key={view.id}
                   onClick={() => onSelect(view.id)}
                   aria-current={isActive ? 'step' : undefined}
-                  className={`group relative flex items-center gap-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${
-                    stuck ? 'pl-2 pr-3 py-1.5' : 'pl-2.5 pr-4 py-2.5'
+                  className={`group relative flex items-center gap-2 min-w-0 rounded-lg font-medium text-sm transition-all duration-200 ${
+                    stuck ? 'pl-2 pr-2.5 py-1.5' : 'pl-2 pr-3 py-2.5'
                   } ${
                     isActive
                       ? 'bg-raspberry text-white shadow-lg shadow-raspberry/40'
@@ -92,7 +92,7 @@ export default function StepperBar({
                 >
                   {/* Step number badge */}
                   <span
-                    className={`flex items-center justify-center rounded-full text-xs font-bold transition-all ${
+                    className={`flex-shrink-0 flex items-center justify-center rounded-full text-xs font-bold transition-all ${
                       stuck ? 'w-5 h-5' : 'w-6 h-6'
                     } ${
                       isActive
@@ -110,11 +110,11 @@ export default function StepperBar({
                       index + 1
                     )}
                   </span>
-                  <span className="text-left">
-                    <span className="block font-semibold leading-tight">{view.name}</span>
+                  <span className="text-left min-w-0 flex-1">
+                    <span className="block font-semibold leading-tight truncate">{view.name}</span>
                     {/* Sub-label only in the expanded state — collapses away when stuck */}
                     {!stuck && (
-                      <span className={`block text-xs mt-0.5 ${isActive ? 'text-white/70' : 'opacity-60'}`}>
+                      <span className={`block text-xs mt-0.5 truncate ${isActive ? 'text-white/70' : 'opacity-60'}`}>
                         {view.description}
                       </span>
                     )}
