@@ -541,7 +541,7 @@ export default function InteractiveFineTuningExplorer() {
           })}
 
           {/* Phase label */}
-          <text x="560" y="785" textAnchor="middle" fill="#9CA3AF" fontSize="12" fontWeight="500">
+          <text x="560" y="785" textAnchor="middle" fill="#E5E7EB" fontSize="26" fontWeight="700">
             Phase {currentPhase}: {phases[currentPhase - 1]?.name}
           </text>
         </svg>

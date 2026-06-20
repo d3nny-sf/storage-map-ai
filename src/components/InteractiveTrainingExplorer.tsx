@@ -933,9 +933,9 @@ export default function InteractiveTrainingExplorer() {
             x="740"
             y="845"
             textAnchor="middle"
-            fill="#9CA3AF"
-            fontSize="12"
-            fontWeight="500"
+            fill="#E5E7EB"
+            fontSize="28"
+            fontWeight="700"
           >
             Phase {currentPhase}: {phases[currentPhase - 1]?.name}
           </text>

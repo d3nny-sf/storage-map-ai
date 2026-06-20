@@ -420,6 +420,26 @@ export default function StorageLayoutExplorer() {
           
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setShowInsights((v) => !v)}
+              aria-expanded={showInsights}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                showInsights
+                  ? 'bg-teal-500/25 text-teal-300 border-teal-500/40'
+                  : 'bg-teal-500/15 text-teal-400 border-teal-500/30 hover:bg-teal-500/25'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Storage insights
+              <svg
+                className={`w-3.5 h-3.5 transition-transform duration-300 ${showInsights ? 'rotate-180' : ''}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <button
               onClick={() => setShowLakehouseInfo(true)}
               className="relative px-4 py-2 rounded-lg bg-amber-500/20 text-amber-400 text-sm font-medium hover:bg-amber-500/30 transition-colors border border-amber-500/30"
             >
@@ -513,70 +533,40 @@ export default function StorageLayoutExplorer() {
           ))}
         </div>
 
-        {/* Capacity Scale Bar */}
-        <div className="bg-gray-800/50 rounded-xl p-4 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-semibold text-gray-300">Capacity Scale</span>
+        {/* Capacity Scale — slim, proportional, gently pulsing */}
+        <div className="mb-6">
+          <div className="flex items-baseline justify-between mb-2">
+            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Capacity Scale</span>
+            <span className="text-[10px] text-gray-600">per-tier order of magnitude →</span>
           </div>
-          <div className="flex items-center gap-1 h-12">
-            <div className="flex-1 bg-emerald-500/30 rounded h-full flex items-center justify-center">
-              <div className="text-[10px] text-emerald-400 font-medium">TB+</div>
-            </div>
-            <div className="flex-1 rounded h-full flex items-center justify-center" style={{ backgroundColor: 'rgba(20,184,166,0.2)' }}>
-              <div className="text-[10px] font-medium" style={{ color: '#14B8A6' }}>TB+</div>
-            </div>
-            <div className="flex-1 bg-raspberry/30 rounded h-full flex items-center justify-center">
-              <div className="text-[10px] text-raspberry font-medium">TB+</div>
-            </div>
-            <div className="flex-1 bg-amber-500/30 rounded h-full flex items-center justify-center">
-              <div className="text-[10px] text-amber-400 font-medium">PB+</div>
-            </div>
-            <div className="flex-1 bg-gray-500/30 rounded h-full flex items-center justify-center">
-              <div className="text-[10px] text-gray-400 font-medium">EB+</div>
-            </div>
-          </div>
-          <div className="flex justify-between mt-2 text-[10px] text-gray-500">
-            <span>Tier 0</span>
-            <span>Tier G3.5</span>
-            <span>Tier 1</span>
-            <span>Tier 2</span>
-            <span>Tier 3</span>
+          <div className="flex items-end gap-1.5">
+            {([
+              { tier: 'Tier 0',     cap: 'TB+',    grow: 8,  color: '#22C55E', glow: 'rgba(34,197,94,0.45)' },
+              { tier: 'Tier G3.5',  cap: 'PB+',    grow: 14, color: '#14B8A6', glow: 'rgba(20,184,166,0.5)' },
+              { tier: 'Tier 1',     cap: 'TB → PB', grow: 11, color: '#E91A45', glow: 'rgba(233,26,69,0.45)' },
+              { tier: 'Tier 2',     cap: 'PB+',    grow: 17, color: '#F59E0B', glow: 'rgba(245,158,11,0.45)' },
+              { tier: 'Tier 3',     cap: 'EB+',    grow: 22, color: '#9CA3AF', glow: 'rgba(156,163,175,0.4)' },
+            ] as const).map((seg, i) => (
+              <div key={seg.tier} className="flex-1 flex flex-col items-center gap-1.5">
+                <span className="text-[11px] font-bold tracking-tight" style={{ color: seg.color }}>{seg.cap}</span>
+                <div
+                  className="cap-seg w-full rounded-md"
+                  style={{
+                    height: `${seg.grow}px`,
+                    background: `linear-gradient(180deg, ${seg.color}59, ${seg.color}26)`,
+                    ['--i' as string]: i,
+                    ['--cap-glow' as string]: seg.glow,
+                  }}
+                />
+                <span className="text-[10px] text-gray-500">{seg.tier}</span>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Storage insights — collapsible so the long-form context never pushes the tiers below the fold */}
-        <div className="rounded-xl border border-white/10 bg-white/[0.02]">
-          <button
-            onClick={() => setShowInsights((v) => !v)}
-            aria-expanded={showInsights}
-            className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left group"
-          >
-            <span className="flex items-center gap-2.5 min-w-0">
-              <span className="w-7 h-7 rounded-lg bg-teal-500/20 flex items-center justify-center flex-shrink-0">
-                <svg className="w-4 h-4 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </span>
-              <span className="text-sm font-semibold text-white truncate">
-                Storage insights
-                <span className="ml-2 font-normal text-gray-500 hidden sm:inline">The G3.5 layer &amp; the two-lens model</span>
-              </span>
-            </span>
-            <span className="flex items-center gap-2 flex-shrink-0">
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full transition-colors ${showInsights ? 'bg-teal-500/20 text-teal-300' : 'bg-white/5 text-gray-400 group-hover:text-white'}`}>
-                {showInsights ? 'Hide' : 'Show'}
-              </span>
-              <svg
-                className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${showInsights ? 'rotate-180' : ''}`}
-                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </span>
-          </button>
-
-          {showInsights && (
-            <div className="px-4 pb-4 space-y-4 animate-slide-down">
+        {/* Storage insights — toggled from the header button; collapsed by default so it never pushes tiers below the fold */}
+        {showInsights && (
+            <div className="space-y-4 animate-slide-down">
               {/* Key Insight */}
               <div className="bg-gradient-to-r from-teal-500/10 to-transparent border border-teal-500/20 rounded-xl p-4">
                 <div className="flex items-start gap-3">
@@ -619,8 +609,7 @@ export default function StorageLayoutExplorer() {
                 </div>
               </div>
             </div>
-          )}
-        </div>
+        )}
         {/* end left column */}
         </div>
 
