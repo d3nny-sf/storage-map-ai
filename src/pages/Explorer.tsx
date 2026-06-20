@@ -66,7 +66,7 @@ export default function Explorer() {
 
       {/* Compact header strip */}
       <div className="relative flex-shrink-0 border-b border-white/10 bg-white/[0.02]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <div className="max-w-[110rem] mx-auto px-4 sm:px-6 lg:px-10 py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
           <div>
             <h1 className="text-lg sm:text-xl font-bold tracking-tight">
               <span className="gradient-text">AI Storage Reference Architecture</span>
@@ -102,7 +102,7 @@ export default function Explorer() {
       {/* Step content — the ONLY scroll region, contained to the remaining
           viewport so the page as a whole never scrolls. */}
       <div className="relative flex-1 min-h-0 overflow-y-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-[110rem] mx-auto px-4 sm:px-6 lg:px-10 py-8">
         {/* Main Explorer */}
         <section className="mb-8">
           {activeView === 'reference' && (
@@ -624,44 +624,41 @@ export default function Explorer() {
       {/* Guided sequence — Prev / Next navigation (pinned to the bottom of the
           locked screen so it's always reachable without scrolling the page) */}
       <div className="relative flex-shrink-0 border-t border-white/10 bg-white/[0.02]">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-stretch justify-between gap-4">
+        <nav className="max-w-[110rem] mx-auto px-4 sm:px-6 lg:px-10 py-2 flex items-center justify-between gap-4">
           {prevView ? (
             <button
               onClick={() => handleViewChange(prevView.id)}
-              className="group flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-raspberry/40 hover:bg-white/10 transition-all text-left max-w-[48%]"
+              className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-raspberry/40 hover:bg-white/10 transition-all text-left min-w-0"
             >
-              <svg className="w-5 h-5 text-gray-400 group-hover:text-raspberry-light transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4 text-gray-400 group-hover:text-raspberry-light transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="min-w-0">
-                <span className="block text-[11px] font-medium text-gray-500 uppercase tracking-wide">Previous</span>
-                <span className="block font-semibold text-white truncate">{prevView.name}</span>
-              </span>
+              <span className="text-[11px] font-medium text-gray-500 uppercase tracking-wide hidden sm:inline">Prev</span>
+              <span className="font-semibold text-sm text-white truncate">{prevView.name}</span>
             </button>
           ) : (
-            <span className="max-w-[48%]" />
+            <span />
           )}
+
+          <span className="text-[11px] font-medium text-gray-500 tabular-nums whitespace-nowrap hidden md:inline">
+            Step {currentIndex + 1} of {totalSteps}
+          </span>
 
           {nextView ? (
             <button
               onClick={() => handleViewChange(nextView.id)}
-              className="btn-primary group flex items-center gap-3 px-4 py-2.5 rounded-xl text-white text-right max-w-[48%] ml-auto"
+              className="btn-primary group flex items-center gap-2 px-3 py-1.5 rounded-lg text-white text-right min-w-0 ml-auto"
             >
-              <span className="min-w-0">
-                <span className="block text-[11px] font-medium text-white/70 uppercase tracking-wide">Next — Step {currentIndex + 2} of {totalSteps}</span>
-                <span className="block font-semibold truncate">{nextView.name}</span>
-              </span>
-              <svg className="w-5 h-5 text-white/80 group-hover:translate-x-0.5 transition-transform flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <span className="text-[11px] font-medium text-white/70 uppercase tracking-wide hidden sm:inline">Next</span>
+              <span className="font-semibold text-sm truncate">{nextView.name}</span>
+              <svg className="w-4 h-4 text-white/80 group-hover:translate-x-0.5 transition-transform flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
             </button>
           ) : (
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-400/30 text-right max-w-[48%] ml-auto">
-              <span>
-                <span className="block text-[11px] font-medium text-emerald-400 uppercase tracking-wide">Sequence complete</span>
-                <span className="block font-semibold text-emerald-200">You've walked the whole stack</span>
-              </span>
-              <svg className="w-6 h-6 text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-400/30 text-right ml-auto">
+              <span className="font-semibold text-sm text-emerald-200">Sequence complete</span>
+              <svg className="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
