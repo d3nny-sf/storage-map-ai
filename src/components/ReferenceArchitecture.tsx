@@ -311,7 +311,14 @@ const DINOSAUR_TRANSLATION = {
 // COMPONENT
 // =============================================================================
 
-export default function ReferenceArchitecture() {
+interface ReferenceArchitectureProps {
+  /** Whether the AI/ML/DL Primer (with its PBS grounding callout) is shown above. */
+  showPrimer?: boolean
+  /** Toggle the Primer open/closed. */
+  onTogglePrimer?: () => void
+}
+
+export default function ReferenceArchitecture({ showPrimer, onTogglePrimer }: ReferenceArchitectureProps = {}) {
   const [selectedPhase, setSelectedPhase] = useState<PipelinePhase | null>(null)
   const [showDinosaurGuide, setShowDinosaurGuide] = useState(false)
   const [viewMode, setViewMode] = useState<'pipeline' | 'tiers' | 'stack'>('pipeline')
@@ -329,12 +336,33 @@ export default function ReferenceArchitecture() {
               Prescriptive. One stack. Two tiering lenses. MemKV-aware.
             </p>
           </div>
-          <button
-            onClick={() => setShowDinosaurGuide(true)}
-            className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white text-sm font-medium transition-colors border border-white/20"
-          >
-            🦖 Storage Veteran Guide
-          </button>
+          <div className="flex items-center gap-3">
+            {onTogglePrimer && (
+              <button
+                onClick={onTogglePrimer}
+                aria-expanded={!!showPrimer}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  showPrimer
+                    ? 'bg-white text-raspberry border-white'
+                    : 'bg-white/10 hover:bg-white/20 text-white border-white/20'
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                Start Here / Primer
+                <svg className={`w-3.5 h-3.5 transition-transform duration-300 ${showPrimer ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            )}
+            <button
+              onClick={() => setShowDinosaurGuide(true)}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white text-sm font-medium transition-colors border border-white/20"
+            >
+              🦖 Storage Veteran Guide
+            </button>
+          </div>
         </div>
       </div>
 
@@ -454,10 +482,10 @@ function PipelineView({
         Each phase maps to a specific storage tier.
       </div>
 
-      {/* Phase strip on the left, detail docked on the right (desktop) */}
-      <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-6 lg:items-start">
-        {/* Phase Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+      {/* Full-width square tile grid; detail expands below on select (no scroll-jump) */}
+      <div className="space-y-6">
+        {/* Phase Cards — denser, squarer grid (3 across on desktop) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {phases.map((phase, idx) => (
             <button
               key={phase.id}
@@ -493,8 +521,8 @@ function PipelineView({
           ))}
         </div>
 
-        {/* Detail Dock — sticky right-rail on desktop, modal on mobile */}
-        <DetailDock open={!!selectedPhase} onClose={() => onSelectPhase(null)} contentKey={selectedPhase?.id}>
+        {/* Detail Dock — full-width panel below the tiles on desktop, modal on mobile */}
+        <DetailDock open={!!selectedPhase} onClose={() => onSelectPhase(null)} contentKey={selectedPhase?.id} placement="below">
           {selectedPhase && (
             <div className="bg-gray-900/95 lg:bg-gray-800/50 rounded-2xl border border-white/10 shadow-2xl p-6">
               <div className="flex items-start justify-between mb-4">
@@ -518,7 +546,7 @@ function PipelineView({
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-gray-900/50 rounded-lg p-4">
                   <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">I/O Pattern</div>
                   <div className="text-white text-sm">{selectedPhase.ioPattern}</div>

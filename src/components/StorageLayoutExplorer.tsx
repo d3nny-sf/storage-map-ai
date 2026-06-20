@@ -514,11 +514,11 @@ export default function StorageLayoutExplorer() {
         </div>
       </div>
 
-      {/* Main Diagram — grid on the left, detail docked on the right (desktop) */}
-      <div className="p-6 lg:p-8 lg:grid lg:grid-cols-[1fr_380px] lg:gap-8 lg:items-start">
+      {/* Main Diagram — full-width tiers; detail expands below on select (no scroll-jump) */}
+      <div className="p-6 lg:p-8 space-y-8">
         <div>
-        {/* Tier Cards - compact, natural-height columns (no equal-height void) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8 items-start">
+        {/* Tier Cards — all five tiers on one row at xl (no side-rail eating a column) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8 items-start">
           {storageTiers.map((tier, i) => (
             <TierCard
               key={tier.id}
@@ -613,11 +613,12 @@ export default function StorageLayoutExplorer() {
         {/* end left column */}
         </div>
 
-        {/* Detail Dock — sticky right-rail on desktop, modal on mobile */}
+        {/* Detail Dock — full-width panel below the tiers on desktop, modal on mobile */}
         <DetailDock
           open={!!(selectedTier || selectedComponent)}
           onClose={handleClose}
           contentKey={selectedComponent?.id ?? selectedTier?.id}
+          placement="below"
         >
           <DetailPanel
             tier={selectedTier}
@@ -808,7 +809,7 @@ function DetailPanel({ tier, component, onClose }: DetailPanelProps) {
         </div>
 
         {component ? (
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <div className="bg-gray-800/50 rounded-xl p-3.5">
               <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-2">Storage Use</h4>
               <p className="text-white">{component.storageUse}</p>
@@ -819,7 +820,7 @@ function DetailPanel({ tier, component, onClose }: DetailPanelProps) {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:items-start">
             <div>
               <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Key Details</h4>
               <ul className="space-y-2">
