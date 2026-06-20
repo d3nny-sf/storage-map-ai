@@ -8,6 +8,7 @@ import InteractiveInferenceExplorer from '../components/InteractiveInferenceExpl
 import StorageLayoutExplorer from '../components/StorageLayoutExplorer'
 import ReferenceArchitecture from '../components/ReferenceArchitecture'
 import AiMlDlPrimer from '../components/AiMlDlPrimer'
+import StepperBar from '../components/StepperBar'
 
 type ViewType = 'reference' | 'storage-layout' | 'training' | 'rag' | 'fine-tuning' | 'inference'
 
@@ -60,7 +61,7 @@ export default function Explorer() {
         description="A prescriptive, step-by-step walk through AI storage: ONE stack, clear tiers, every workload. Built for storage veterans learning AI infrastructure — follow the numbered path or jump to any step."
       >
         {/* Breadcrumb wayfinding */}
-        <nav aria-label="Breadcrumb" className="mt-6">
+        <nav aria-label="Breadcrumb" className="mt-4">
           <ol className="flex items-center gap-2 text-sm text-gray-400">
             <li>
               <Link to="/" className="hover:text-white transition-colors">AI Storage Map</Link>
@@ -71,71 +72,17 @@ export default function Explorer() {
             <li aria-current="page" className="text-raspberry-light font-medium">{views[currentIndex]?.name}</li>
           </ol>
         </nav>
-
-        {/* Guided step rail */}
-        <div className="mt-8">
-          {/* Progress bar */}
-          <div className="flex items-center gap-3 mb-5">
-            <span className="text-xs font-semibold text-gray-400 tabular-nums whitespace-nowrap">
-              STEP {currentIndex + 1} <span className="text-gray-600">/ {totalSteps}</span>
-            </span>
-            <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full shimmer-bar rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Numbered step chips */}
-          <div className="flex flex-wrap gap-2.5">
-            {views.map((view, index) => {
-              const isActive = activeView === view.id
-              const isVisited = index < currentIndex
-              return (
-                <button
-                  key={view.id}
-                  onClick={() => handleViewChange(view.id)}
-                  aria-current={isActive ? 'step' : undefined}
-                  className={`group relative flex items-center gap-3 pl-2.5 pr-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${
-                    isActive
-                      ? 'bg-raspberry text-white shadow-lg shadow-raspberry/40 scale-[1.02]'
-                      : 'bg-white/8 text-gray-200 hover:bg-white/15 border border-white/15 hover:border-white/25'
-                  }`}
-                >
-                  {/* Step number badge */}
-                  <span
-                    className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold transition-all ${
-                      isActive
-                        ? 'bg-white text-raspberry'
-                        : isVisited
-                          ? 'bg-emerald-500 text-white'
-                          : 'bg-white/15 text-gray-300 group-hover:bg-white/25'
-                    }`}
-                  >
-                    {isVisited ? (
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : (
-                      index + 1
-                    )}
-                  </span>
-                  <span className="text-left">
-                    <span className="block font-semibold leading-tight">{view.name}</span>
-                    <span className={`block text-xs mt-0.5 ${isActive ? 'text-white/70' : 'opacity-60'}`}>{view.description}</span>
-                  </span>
-                  {index === 0 && currentIndex === 0 && (
-                    <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full shadow-lg" style={{ boxShadow: '0 0 8px rgba(34,197,94,0.6)' }}>
-                      START HERE
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        </div>
       </PageHeader>
+
+      {/* Guided step rail — sticks under the nav so wayfinding is always one glance away */}
+      <StepperBar
+        views={views}
+        activeView={activeView}
+        currentIndex={currentIndex}
+        totalSteps={totalSteps}
+        progressPct={progressPct}
+        onSelect={(id) => handleViewChange(id as ViewType)}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Main Explorer */}
