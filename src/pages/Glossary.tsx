@@ -492,7 +492,8 @@ export default function Glossary() {
   }
 
   return (
-    <div>
+    <div className="page-cosmos text-white">
+      <div className="starfield-fixed starfield opacity-50" />
       <PageHeader
         title="Glossary, Data Gravity & Misconceptions"
         subtitle="AI Storage Reference"
@@ -500,15 +501,15 @@ export default function Glossary() {
       />
 
       {/* Data Gravity Section */}
-      <section className="py-16 bg-gray-50 relative overflow-hidden">
+      <section className="py-16 relative overflow-hidden">
         <div className="absolute -right-20 top-1/2 -translate-y-1/2 w-80 h-80 bg-raspberry/5 rounded-full blur-3xl" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="inline-block px-4 py-2 bg-raspberry/10 text-raspberry font-medium text-sm rounded-full mb-4">
               Scale Comparison
             </span>
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Data Gravity: A Visual Comparison</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl lg:text-4xl font-bold gradient-text mb-4">Data Gravity: A Visual Comparison</h2>
+            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
               The relative data volumes across AI workloads span many orders of magnitude. 
               This is why one-size-fits-all storage advice doesn't work.
             </p>
@@ -518,14 +519,14 @@ export default function Glossary() {
       </section>
 
       {/* Misconceptions Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <span className="inline-block px-4 py-2 bg-gray-100 text-gray-700 font-medium text-sm rounded-full mb-4">
+            <span className="inline-block px-4 py-2 bg-white/10 text-gray-200 font-medium text-sm rounded-full mb-4">
               Myth Busting
             </span>
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Common Misconceptions</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl lg:text-4xl font-bold gradient-text mb-4">Common Misconceptions</h2>
+            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
               These get repeated in pitch decks and conference talks. Here's what's actually true.
             </p>
           </div>
@@ -533,7 +534,7 @@ export default function Glossary() {
             {myths.map((item, index) => (
               <div 
                 key={index} 
-                className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-6 lg:p-8 border border-gray-100 hover:border-raspberry/30 hover:shadow-lg transition-all duration-300"
+                className="outta-card p-6 lg:p-8"
               >
                 <div className="flex items-start gap-5">
                   <div className="flex-shrink-0 w-12 h-12 bg-raspberry/10 rounded-xl flex items-center justify-center">
@@ -542,10 +543,10 @@ export default function Glossary() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">
+                    <h3 className="text-lg font-bold text-white mb-2">
                       Myth: {item.myth}
                     </h3>
-                    <p className="text-gray-600 leading-relaxed">
+                    <p className="text-gray-300 leading-relaxed">
                       <span className="font-semibold text-raspberry">Reality:</span> {item.reality}
                     </p>
                   </div>
@@ -559,8 +560,8 @@ export default function Glossary() {
       {/* Glossary Terms */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Glossary Terms</h2>
-          <p className="text-lg text-gray-600">AI/ML and storage terminology explained for engineers.</p>
+          <h2 className="text-3xl font-bold gradient-text mb-4">Glossary Terms</h2>
+          <p className="text-lg text-gray-300">AI/ML and storage terminology explained for engineers.</p>
         </div>
 
         {/* Search */}
@@ -571,7 +572,7 @@ export default function Glossary() {
               placeholder="Search terms..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-5 py-4 pl-14 bg-white border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-raspberry/10 focus:border-raspberry outline-none transition-all text-lg"
+              className="w-full px-5 py-4 pl-14 outta-card border-2 !border-white/10 text-white placeholder:text-gray-500 rounded-2xl focus:ring-4 focus:ring-raspberry/20 focus:!border-raspberry outline-none transition-all text-lg"
             />
             <div className="absolute left-5 top-1/2 -translate-y-1/2">
               <svg
@@ -586,7 +587,7 @@ export default function Glossary() {
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full transition-colors"
               >
                 <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -598,7 +599,7 @@ export default function Glossary() {
 
         {/* Category Filter */}
         <div className="mb-6 flex flex-wrap items-center gap-2">
-          <span className="text-sm font-bold text-gray-700">Filter:</span>
+          <span className="text-sm font-bold text-gray-300">Filter:</span>
           {[
             { id: 'all' as CategoryFilter, label: 'All Terms', count: glossaryTerms.length },
             { id: 'ai-ml' as CategoryFilter, label: 'AI/ML', count: glossaryTerms.filter(t => t.category === 'ai-ml').length },
@@ -611,7 +612,7 @@ export default function Glossary() {
               className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                 categoryFilter === cat.id
                   ? 'bg-raspberry text-white shadow-lg shadow-raspberry/30'
-                  : 'bg-white text-gray-700 border border-gray-200 hover:border-raspberry/30'
+                  : 'outta-inset text-gray-300 hover:border-raspberry/40 hover:text-white'
               }`}
             >
               {cat.label} ({cat.count})
@@ -619,7 +620,7 @@ export default function Glossary() {
           ))}
         </div>
 
-        <p className="mb-8 text-sm text-gray-500 text-center">
+        <p className="mb-8 text-sm text-gray-400 text-center">
           {filteredTerms.length} term{filteredTerms.length !== 1 ? 's' : ''} {searchTerm ? 'matching your search' : categoryFilter !== 'all' ? `in ${categoryFilter === 'minio' ? 'MinIO AIStor' : categoryFilter === 'ai-ml' ? 'AI/ML' : 'Storage Infra'}` : 'in glossary'}
         </p>
 
@@ -629,7 +630,7 @@ export default function Glossary() {
             <a
               key={letter}
               href={`#letter-${letter}`}
-              className="w-10 h-10 flex items-center justify-center bg-white hover:bg-gradient-to-br hover:from-raspberry hover:to-raspberry-dark hover:text-white border border-gray-200 rounded-xl font-bold text-sm transition-all duration-200 shadow-sm hover:shadow-lg hover:shadow-raspberry/20"
+              className="w-10 h-10 flex items-center justify-center outta-inset text-gray-200 hover:bg-gradient-to-br hover:from-raspberry hover:to-raspberry-dark hover:text-white hover:border-transparent rounded-xl font-bold text-sm transition-all duration-200"
             >
               {letter}
             </a>
@@ -653,10 +654,10 @@ export default function Glossary() {
                   return (
                     <div
                       key={item.term}
-                      className="bg-white rounded-2xl border border-gray-200 p-6 hover:border-raspberry/30 hover:shadow-lg transition-all duration-300 group"
+                      className="outta-card p-6 group"
                     >
                       <div className="flex items-start justify-between gap-3 mb-3">
-                        <h3 className="text-lg font-bold text-gray-900 group-hover:text-raspberry transition-colors">
+                        <h3 className="text-lg font-bold text-white group-hover:text-raspberry-light transition-colors">
                           {item.term}
                         </h3>
                         {badge && (
@@ -665,11 +666,11 @@ export default function Glossary() {
                           </span>
                         )}
                       </div>
-                      <p className="text-gray-600 mb-4 leading-relaxed">{item.definition}</p>
+                      <p className="text-gray-300 mb-4 leading-relaxed">{item.definition}</p>
 
                       {item.context && (
-                        <div className="bg-gradient-to-r from-gray-50 to-white rounded-xl p-4 mb-4 border border-gray-100">
-                          <p className="text-sm text-gray-700">
+                        <div className="outta-inset p-4 mb-4">
+                          <p className="text-sm text-gray-300">
                             <span className="font-semibold text-raspberry">In practice:</span> {item.context}
                           </p>
                         </div>
@@ -677,11 +678,11 @@ export default function Glossary() {
 
                       {item.relatedTerms && item.relatedTerms.length > 0 && (
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs text-gray-500 font-medium">Related:</span>
+                          <span className="text-xs text-gray-400 font-medium">Related:</span>
                           {item.relatedTerms.map((related) => (
                             <span
                               key={related}
-                              className="px-3 py-1 text-xs bg-gray-100 hover:bg-raspberry/10 hover:text-raspberry text-gray-600 rounded-full transition-colors cursor-pointer"
+                              className="px-3 py-1 text-xs bg-white/10 hover:bg-raspberry/20 hover:text-raspberry-light text-gray-300 rounded-full transition-colors cursor-pointer"
                               onClick={() => setSearchTerm(related)}
                             >
                               {related}
@@ -699,12 +700,12 @@ export default function Glossary() {
 
         {filteredTerms.length === 0 && (
           <div className="text-center py-16">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-2xl flex items-center justify-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-white/10 rounded-2xl flex items-center justify-center">
               <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <p className="text-gray-500 font-medium">No terms found matching "{searchTerm}"</p>
+            <p className="text-gray-300 font-medium">No terms found matching "{searchTerm}"</p>
             <button
               onClick={() => setSearchTerm('')}
               className="mt-4 text-raspberry hover:text-raspberry-dark font-medium transition-colors"

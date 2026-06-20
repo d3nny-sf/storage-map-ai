@@ -10,8 +10,12 @@ const navLinks = [
   { path: '/glossary', label: 'Glossary & Reference' },
 ]
 
+// The one-screen / no-scroll rule applies ONLY to these two routes.
+const ONE_SCREEN_ROUTES = ['/', '/explorer']
+
 export default function Layout() {
   const location = useLocation()
+  const isOneScreen = ONE_SCREEN_ROUTES.includes(location.pathname)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   // The Explorer "look here" pulse should only nudge first-time visitors.
@@ -47,7 +51,7 @@ export default function Layout() {
   }, [prevPathname])
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={`flex flex-col ${isOneScreen ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
       {/* Header */}
       <header 
         className={`sticky top-0 z-50 transition-all duration-300 ${
@@ -144,12 +148,15 @@ export default function Layout() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1">
+      {/* Main Content — on one-screen routes the page fills exactly the
+          remaining viewport with no scroll in any direction. */}
+      <main className={isOneScreen ? 'flex-1 min-h-0 overflow-hidden' : 'flex-1'}>
         <Outlet />
       </main>
 
-      {/* Footer */}
+      {/* Footer — hidden on the one-screen routes (Home + Explorer) so it
+          never forces a scroll; the credit lives here for every other page. */}
+      {!isOneScreen && (
       <footer className="relative bg-gradient-to-b from-dark to-darker text-gray-400 pt-12 pb-8 overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute inset-0 pattern-dots opacity-30" />
@@ -186,14 +193,21 @@ export default function Layout() {
             </a>
           </div>
 
-          {/* Sign-off */}
-          <div className="mt-8 pt-6 border-t border-white/10">
-            <p className="text-xs text-gray-600 text-center md:text-left">
+          {/* Sign-off + professional credit */}
+          <div className="mt-8 pt-6 border-t border-white/10 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <p className="text-xs text-gray-600 text-center md:text-left max-w-2xl">
               Storage examples reference MinIO AIStor — the S3-compatible object store built for AI workloads. Built for the team that has to actually build it.
             </p>
+            <div className="text-center md:text-right">
+              <p className="text-sm font-semibold text-white leading-tight">Denny Kalaf <span className="text-gray-500 font-normal">(Denny)</span></p>
+              <p className="text-xs text-gray-400 leading-tight mt-0.5">
+                Field Architect, <span className="text-raspberry-light font-medium">MinIO</span> · San Francisco
+              </p>
+            </div>
           </div>
         </div>
       </footer>
+      )}
     </div>
   )
 }

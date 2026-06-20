@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
-import { PageHeader, BottomLine } from '../components/PipelineDiagram'
+import { BottomLine } from '../components/PipelineDiagram'
 import InteractiveTrainingExplorer from '../components/InteractiveTrainingExplorer'
 import InteractiveRAGExplorer from '../components/InteractiveRAGExplorer'
 import InteractiveFineTuningExplorer from '../components/InteractiveFineTuningExplorer'
@@ -54,39 +54,57 @@ export default function Explorer() {
   const progressPct = ((currentIndex + 1) / totalSteps) * 100
 
   return (
-    <div>
-      <PageHeader
-        title="AI Storage Reference Architecture"
-        subtitle="A Guided Sequence"
-        description="A prescriptive, step-by-step walk through AI storage: ONE stack, clear tiers, every workload. Built for storage veterans learning AI infrastructure — follow the numbered path or jump to any step."
-      >
-        {/* Breadcrumb wayfinding */}
-        <nav aria-label="Breadcrumb" className="mt-4">
-          <ol className="flex items-center gap-2 text-sm text-gray-400">
-            <li>
-              <Link to="/" className="hover:text-white transition-colors">AI Storage Map</Link>
-            </li>
-            <li aria-hidden="true" className="text-gray-600">/</li>
-            <li className="text-gray-300">Explorer</li>
-            <li aria-hidden="true" className="text-gray-600">/</li>
-            <li aria-current="page" className="text-raspberry-light font-medium">{views[currentIndex]?.name}</li>
-          </ol>
-        </nav>
-      </PageHeader>
+    // ONE-SCREEN RULE (Screen Shot Steps): the whole guided explorer fits a
+    // single viewport. The page never scrolls — the chrome (compact header +
+    // stepper + Prev/Next) is pinned and only the step content scrolls inside
+    // its own contained frame.
+    <div className="lock-screen cosmos-bg text-white flex flex-col">
+      {/* Ambient cosmic backdrop */}
+      <div className="starfield opacity-50" />
+      <div className="aurora bg-raspberry/20 w-[30rem] h-[30rem] -top-40 -right-32" />
+      <div className="aurora bg-accent-blue/15 w-80 h-80 -bottom-32 -left-24" style={{ animationDelay: '-7s' }} />
 
-      {/* Guided step rail — sticks under the nav so wayfinding is always one glance away */}
-      <StepperBar
-        views={views}
-        activeView={activeView}
-        currentIndex={currentIndex}
-        totalSteps={totalSteps}
-        progressPct={progressPct}
-        onSelect={(id) => handleViewChange(id as ViewType)}
-      />
+      {/* Compact header strip */}
+      <div className="relative flex-shrink-0 border-b border-white/10 bg-white/[0.02]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+          <div>
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight">
+              <span className="gradient-text">AI Storage Reference Architecture</span>
+            </h1>
+            <nav aria-label="Breadcrumb">
+              <ol className="flex items-center gap-2 text-xs text-gray-400">
+                <li><Link to="/" className="hover:text-white transition-colors">AI Storage Map</Link></li>
+                <li aria-hidden="true" className="text-gray-600">/</li>
+                <li className="text-gray-300">Explorer</li>
+                <li aria-hidden="true" className="text-gray-600">/</li>
+                <li aria-current="page" className="text-raspberry-light font-medium">{views[currentIndex]?.name}</li>
+              </ol>
+            </nav>
+          </div>
+          <span className="px-3 py-1 rounded-full bg-raspberry/20 text-raspberry-light font-semibold text-xs border border-raspberry/30">
+            A Guided Sequence
+          </span>
+        </div>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Guided step rail */}
+      <div className="relative flex-shrink-0">
+        <StepperBar
+          views={views}
+          activeView={activeView}
+          currentIndex={currentIndex}
+          totalSteps={totalSteps}
+          progressPct={progressPct}
+          onSelect={(id) => handleViewChange(id as ViewType)}
+        />
+      </div>
+
+      {/* Step content — the ONLY scroll region, contained to the remaining
+          viewport so the page as a whole never scrolls. */}
+      <div className="relative flex-1 min-h-0 overflow-y-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Main Explorer */}
-        <section className="mb-12">
+        <section className="mb-8">
           {activeView === 'reference' && (
             <>
               {showPrimer && (
@@ -108,10 +126,10 @@ export default function Explorer() {
 
               {/* Key Technical Insights — migrated from Training tab */}
               <section className="mt-12 mb-12">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Key Technical Insights</h2>
+                <h2 className="text-xl font-bold gradient-text mb-4">Key Technical Insights</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <div className="outta-card p-5">
+                    <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                       <span className="w-8 h-8 bg-raspberry/10 rounded-lg flex items-center justify-center">
                         <svg className="w-5 h-5 text-raspberry" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -119,15 +137,15 @@ export default function Explorer() {
                       </span>
                       Throughput Over Latency
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-300">
                       Training storage is throughput-bound, not latency-bound. DataLoaders need sustained GB/s reads. 
                       Checkpoints need burst GB/s writes. ELT jobs read and write entire tables. 
                       The metric is aggregate throughput (GB/s), not random IOPS. Size your storage accordingly.
                     </p>
                   </div>
 
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <div className="outta-card p-5">
+                    <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                       <span className="w-8 h-8 bg-raspberry/10 rounded-lg flex items-center justify-center">
                         <svg className="w-5 h-5 text-raspberry" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -135,7 +153,7 @@ export default function Explorer() {
                       </span>
                       Storage Speed = GPU Dollars
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-300">
                       When DataLoader throughput drops below GPU consumption rate, GPUs idle waiting for data. 
                       When synchronous checkpoints pause training, every GPU in the cluster burns money doing nothing. 
                       On a large GPU cluster, every minute of storage-induced idle time is expensive — idle accelerators
@@ -143,8 +161,8 @@ export default function Explorer() {
                     </p>
                   </div>
 
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <div className="outta-card p-5">
+                    <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                       <span className="w-8 h-8 bg-raspberry/10 rounded-lg flex items-center justify-center">
                         <svg className="w-5 h-5 text-raspberry" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -152,15 +170,15 @@ export default function Explorer() {
                       </span>
                       Medallion Architecture
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-300">
                       Bronze (raw) → Silver (cleaned, deduplicated) → Gold (tokenized, sharded). Each layer lives in 
                       object storage with Iceberg table format providing ACID transactions, schema evolution, and time travel. 
                       Every transformation is a full read-write cycle through storage. This is where the petabytes get processed.
                     </p>
                   </div>
 
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <div className="outta-card p-5">
+                    <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                       <span className="w-8 h-8 bg-raspberry/10 rounded-lg flex items-center justify-center">
                         <svg className="w-5 h-5 text-raspberry" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -168,7 +186,7 @@ export default function Explorer() {
                       </span>
                       Disaster Recovery
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-300">
                       Checkpoints are your insurance policy. GPU node failure, network partition, software crash — 
                       the ability to resume from the last checkpoint is why durable object storage is non-negotiable. 
                       A failed checkpoint during a multi-week training run means restarting from the last good save — 
@@ -180,47 +198,47 @@ export default function Explorer() {
 
               {/* I/O Profile Summary — migrated from Training tab */}
               <section className="mb-12">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">I/O Profile Summary</h2>
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                <h2 className="text-xl font-bold gradient-text mb-4">I/O Profile Summary</h2>
+                <div className="outta-card outta-table overflow-hidden">
+                  <table className="min-w-full">
+                    <thead>
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Operation</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pattern</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Volume</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority Metric</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Operation</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Pattern</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Volume</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Priority Metric</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Data Ingestion</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sequential writes</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Petabytes</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Write throughput</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">Data Ingestion</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Sequential writes</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Petabytes</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Write throughput</td>
                       </tr>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">ELT / Medallion</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Batch read-write cycles</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">TB-scale per job</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">R/W throughput, ACID (Iceberg)</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">ELT / Medallion</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Batch read-write cycles</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">TB-scale per job</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">R/W throughput, ACID (Iceberg)</td>
                       </tr>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">DataLoader Streaming</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sequential reads w/ prefetch</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Continuous (high aggregate GET)</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Read throughput (GB/s)</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">DataLoader Streaming</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Sequential reads w/ prefetch</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Continuous (high aggregate GET)</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Read throughput (GB/s)</td>
                       </tr>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Checkpointing</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Bursty large writes (sync pause)</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">500GB-1TB per checkpoint</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Write throughput, durability</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">Checkpointing</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Bursty large writes (sync pause)</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">500GB-1TB per checkpoint</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Write throughput, durability</td>
                       </tr>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Artifact Logging</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Continuous small writes</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Gigabytes</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Availability, versioning</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">Artifact Logging</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Continuous small writes</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Gigabytes</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Availability, versioning</td>
                       </tr>
                     </tbody>
                   </table>
@@ -247,30 +265,30 @@ export default function Explorer() {
 
               {/* Scale Comparison */}
               <section className="mt-12 mb-12">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">The Scale Difference</h2>
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                  <p className="text-gray-600 mb-6">
+                <h2 className="text-xl font-bold gradient-text mb-4">The Scale Difference</h2>
+                <div className="outta-card p-5">
+                  <p className="text-gray-300 mb-6">
                     The key insight: with LoRA, you're not touching 99%+ of the base model weights. 
                     This fundamentally changes the storage requirements.
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="text-center p-6 bg-gray-50 rounded-lg">
+                    <div className="text-center p-5 outta-inset">
                       <div className="text-4xl font-bold text-raspberry mb-2">140GB</div>
-                      <div className="text-sm text-gray-600 mb-1">70B Model (FP16)</div>
+                      <div className="text-sm text-gray-300 mb-1">70B Model (FP16)</div>
                       <div className="text-xs text-gray-400">Base model weights</div>
                     </div>
-                    <div className="text-center p-6 bg-gray-50 rounded-lg">
+                    <div className="text-center p-5 outta-inset">
                       <div className="text-4xl font-bold text-amber-500 mb-2">500GB+</div>
-                      <div className="text-sm text-gray-600 mb-1">Full Training Checkpoint</div>
+                      <div className="text-sm text-gray-300 mb-1">Full Training Checkpoint</div>
                       <div className="text-xs text-gray-400">Model + optimizer state</div>
                     </div>
-                    <div className="text-center p-6 bg-raspberry/10 rounded-lg border-2 border-raspberry">
+                    <div className="text-center p-5 rounded-xl bg-raspberry/15 border-2 border-raspberry/60">
                       <div className="text-4xl font-bold text-raspberry mb-2">100MB</div>
-                      <div className="text-sm text-gray-600 mb-1">LoRA Adapter</div>
+                      <div className="text-sm text-gray-300 mb-1">LoRA Adapter</div>
                       <div className="text-xs text-gray-400">Just the trained parameters</div>
                     </div>
                   </div>
-                  <p className="text-center text-sm text-gray-500 mt-4">
+                  <p className="text-center text-sm text-gray-400 mt-4">
                     That's a <span className="font-semibold">5,000x</span> difference in checkpoint size.
                   </p>
                 </div>
@@ -278,10 +296,10 @@ export default function Explorer() {
 
               {/* Key Insights */}
               <section className="mb-12">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Key Technical Insights</h2>
+                <h2 className="text-xl font-bold gradient-text mb-4">Key Technical Insights</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <div className="outta-card p-5">
+                    <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                       <span className="w-8 h-8 bg-raspberry/10 rounded-lg flex items-center justify-center">
                         <svg className="w-5 h-5 text-raspberry" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -289,15 +307,15 @@ export default function Explorer() {
                       </span>
                       Adapter Versioning
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-300">
                       The model registry pattern becomes elegant with LoRA: version adapters independently from base models. 
                       Same base model, multiple domain-specific adapters, clear lineage tracking. 
-                      <code className="text-xs bg-gray-100 px-1 rounded">/llama-3-8b/adapters/customer-support-v2/</code>
+                      <code className="text-xs bg-white/10 text-raspberry-light px-1 rounded">/llama-3-8b/adapters/customer-support-v2/</code>
                     </p>
                   </div>
 
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <div className="outta-card p-5">
+                    <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                       <span className="w-8 h-8 bg-raspberry/10 rounded-lg flex items-center justify-center">
                         <svg className="w-5 h-5 text-raspberry" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -305,15 +323,15 @@ export default function Explorer() {
                       </span>
                       Hot-Swap at Inference
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-300">
                       Adapters are small enough to load dynamically at inference time. vLLM and Triton support 
                       multi-adapter serving — load base model once, swap adapters per request or tenant. 
                       Object storage is in the hot path for adapter swaps.
                     </p>
                   </div>
 
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <div className="outta-card p-5">
+                    <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                       <span className="w-8 h-8 bg-raspberry/10 rounded-lg flex items-center justify-center">
                         <svg className="w-5 h-5 text-raspberry" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -321,15 +339,15 @@ export default function Explorer() {
                       </span>
                       Dataset Curation Matters
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-300">
                       Fine-tuning is only as good as your data. The dataset preparation phase — curation, 
                       formatting, quality filtering — is where the real work happens. Object storage holds 
                       the versioned datasets that make results reproducible.
                     </p>
                   </div>
 
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <div className="outta-card p-5">
+                    <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                       <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                         <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -337,7 +355,7 @@ export default function Explorer() {
                       </span>
                       QLoRA: Same Storage, Less GPU
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-300">
                       <span className="font-semibold">QLoRA</span> adds 4-bit quantization to LoRA — reducing GPU memory 
                       dramatically. From a storage perspective, patterns are identical: quantization happens at load time, 
                       not in storage. Checkpoints and adapters are the same size; you just need less GPU memory during training.
@@ -348,41 +366,41 @@ export default function Explorer() {
 
               {/* I/O Profile Summary */}
               <section className="mb-12">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">I/O Profile Summary</h2>
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                <h2 className="text-xl font-bold gradient-text mb-4">I/O Profile Summary</h2>
+                <div className="outta-card outta-table overflow-hidden">
+                  <table className="min-w-full">
+                    <thead>
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Operation</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pattern</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Volume</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Frequency</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Operation</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Pattern</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Volume</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Frequency</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Dataset Load</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sequential read</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">MB to GB</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Once at training start</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">Dataset Load</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Sequential read</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">MB to GB</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Once at training start</td>
                       </tr>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Base Model Load</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Large sequential read</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">16-140 GB</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Once at training start</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">Base Model Load</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Large sequential read</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">16-140 GB</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Once at training start</td>
                       </tr>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Adapter Checkpoint</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Small sequential write</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">~50-500 MB</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Per epoch or N steps</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">Adapter Checkpoint</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Small sequential write</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">~50-500 MB</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Per epoch or N steps</td>
                       </tr>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Adapter Export</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Small sequential write</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">~50-500 MB</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Once at training end</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">Adapter Export</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Small sequential write</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">~50-500 MB</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Once at training end</td>
                       </tr>
                     </tbody>
                   </table>
@@ -405,38 +423,38 @@ export default function Explorer() {
 
               {/* Anatomy of a Request */}
               <section className="mt-12 mb-12">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Anatomy of a Single Request</h2>
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 className="text-xl font-bold gradient-text mb-4">Anatomy of a Single Request</h2>
+                <div className="outta-card p-5">
                   <div className="space-y-4">
                     <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm font-bold text-gray-600">1</div>
+                      <div className="flex-shrink-0 w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-sm font-bold text-gray-300">1</div>
                       <div>
-                        <p className="font-medium text-gray-900">User prompt arrives at API endpoint</p>
-                        <p className="text-sm text-gray-500">Network I/O, not storage</p>
+                        <p className="font-medium text-white">User prompt arrives at API endpoint</p>
+                        <p className="text-sm text-gray-400">Network I/O, not storage</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm font-bold text-gray-600">2</div>
+                      <div className="flex-shrink-0 w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-sm font-bold text-gray-300">2</div>
                       <div>
-                        <p className="font-medium text-gray-900">Tokenizer converts text to token IDs</p>
-                        <p className="text-sm text-gray-500">CPU, in-memory operation</p>
+                        <p className="font-medium text-white">Tokenizer converts text to token IDs</p>
+                        <p className="text-sm text-gray-400">CPU, in-memory operation</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm font-bold text-gray-600">3</div>
+                      <div className="flex-shrink-0 w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-sm font-bold text-gray-300">3</div>
                       <div>
-                        <p className="font-medium text-gray-900">Token IDs sent to GPU</p>
-                        <p className="text-sm text-gray-500">PCIe transfer, not storage</p>
+                        <p className="font-medium text-white">Token IDs sent to GPU</p>
+                        <p className="text-sm text-gray-400">PCIe transfer, not storage</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-4 p-4 bg-cyan-50 rounded-lg border border-cyan-200">
+                    <div className="flex items-start gap-4 p-4 rounded-xl bg-cyan-500/10 border border-cyan-400/30">
                       <div className="flex-shrink-0 w-8 h-8 bg-cyan-600 rounded-full flex items-center justify-center text-sm font-bold text-white">4</div>
                       <div className="flex-1">
-                        <p className="font-medium text-cyan-800">Forward pass through transformer layers</p>
-                        <div className="mt-2 text-sm text-cyan-700 space-y-1">
+                        <p className="font-medium text-cyan-200">Forward pass through transformer layers</p>
+                        <div className="mt-2 text-sm text-cyan-300 space-y-1">
                           <p>&rarr; Attention computation (KV cache in GPU HBM)</p>
                           <p>&rarr; FFN layers (matrix multiplications, GPU compute)</p>
-                          <p>&rarr; <span className="font-semibold text-cyan-900">If context exceeds GPU HBM: the KV cache lives in the G3.5 context-memory layer (MinIO MemKV) — GPU→NVMe over RDMA</span></p>
+                          <p>&rarr; <span className="font-semibold text-cyan-100">If context exceeds GPU HBM: the KV cache lives in the G3.5 context-memory layer (MinIO MemKV) — GPU→NVMe over RDMA</span></p>
                           <p>&rarr; Logits produced &rarr; sampling &rarr; output token</p>
                           <p>&rarr; <span className="font-semibold">Repeat autoregressively until stop condition</span></p>
                         </div>
@@ -451,17 +469,17 @@ export default function Explorer() {
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm font-bold text-gray-600">5</div>
+                      <div className="flex-shrink-0 w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-sm font-bold text-gray-300">5</div>
                       <div>
-                        <p className="font-medium text-gray-900">Detokenize back to text</p>
-                        <p className="text-sm text-gray-500">CPU, in-memory operation</p>
+                        <p className="font-medium text-white">Detokenize back to text</p>
+                        <p className="text-sm text-gray-400">CPU, in-memory operation</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm font-bold text-gray-600">6</div>
+                      <div className="flex-shrink-0 w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-sm font-bold text-gray-300">6</div>
                       <div>
-                        <p className="font-medium text-gray-900">Return response + log to object storage</p>
-                        <p className="text-sm text-gray-500">Network I/O + async storage write</p>
+                        <p className="font-medium text-white">Return response + log to object storage</p>
+                        <p className="text-sm text-gray-400">Network I/O + async storage write</p>
                       </div>
                     </div>
                   </div>
@@ -470,10 +488,10 @@ export default function Explorer() {
 
               {/* Key Insights */}
               <section className="mb-12">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Key Technical Insights</h2>
+                <h2 className="text-xl font-bold gradient-text mb-4">Key Technical Insights</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white rounded-xl border-2 border-cyan-200 p-6">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <div className="outta-card p-5">
+                    <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                       <span className="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center">
                         <svg className="w-5 h-5 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -481,7 +499,7 @@ export default function Explorer() {
                       </span>
                       MinIO MemKV (G3.5): Breaking the Memory Wall
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-300">
                       Agentic AI workloads with long contexts explode the KV cache beyond GPU HBM capacity. 
                       The <strong>G3.5 context-memory layer</strong> &mdash; between GPU HBM (G3) and object storage (G4) &mdash; 
                       keeps that KV cache resident instead of evicting and recomputing it. MinIO MemKV moves it{' '}
@@ -490,8 +508,8 @@ export default function Explorer() {
                     </p>
                   </div>
 
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <div className="outta-card p-5">
+                    <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                       <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                         <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -499,15 +517,15 @@ export default function Explorer() {
                       </span>
                       Cold Start Impact
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-300">
                       Object storage throughput directly affects how fast a new instance is ready to serve. 
                       A 70B model at 140 GB needs to move from S3 to GPU HBM. At 10 GB/s, that's 14 seconds. 
                       At 1 GB/s, that's 2+ minutes. This matters for autoscaling and recovery.
                     </p>
                   </div>
 
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <div className="outta-card p-5">
+                    <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                       <span className="w-8 h-8 bg-raspberry/10 rounded-lg flex items-center justify-center">
                         <svg className="w-5 h-5 text-raspberry" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -515,15 +533,15 @@ export default function Explorer() {
                       </span>
                       Logging at Scale
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-300">
                       A high-traffic inference endpoint generates terabytes of logs over time: request/response pairs, 
                       latency metrics, token counts, error codes. Compliance requirements often mandate retention. 
                       Object storage is the durable, cost-effective home for this data.
                     </p>
                   </div>
 
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <div className="outta-card p-5">
+                    <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                       <span className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
                         <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -531,7 +549,7 @@ export default function Explorer() {
                       </span>
                       Feedback Loop &rarr; Fine-Tuning
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-300">
                       User feedback (preferences, corrections, thumbs up/down) feeds back into fine-tuning via RLHF/DPO. 
                       Object storage is the bridge: inference feedback data becomes the training data 
                       for the next LoRA adapter iteration. The model lifecycle is circular, not linear.
@@ -542,46 +560,46 @@ export default function Explorer() {
 
               {/* I/O Profile Summary */}
               <section className="mb-12">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">I/O Profile Summary</h2>
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                <h2 className="text-xl font-bold gradient-text mb-4">I/O Profile Summary</h2>
+                <div className="outta-card outta-table overflow-hidden">
+                  <table className="min-w-full">
+                    <thead>
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Operation</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pattern</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">When</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Storage Role</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Operation</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Pattern</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">When</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Storage Role</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Model Loading</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Large sequential read</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Cold start, scale-out, updates</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">Model Loading</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Large sequential read</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Cold start, scale-out, updates</td>
                         <td className="px-6 py-4"><span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">BURST READ</span></td>
                       </tr>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Adapter Swap</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Small sequential read</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Per-request or per-tenant</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">Adapter Swap</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Small sequential read</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Per-request or per-tenant</td>
                         <td className="px-6 py-4"><span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">BURST READ</span></td>
                       </tr>
-                      <tr className="bg-cyan-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-cyan-800">KV Cache Residency (MemKV G3.5)</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-cyan-600">Microsecond random R/W via RDMA</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-cyan-600">Long-context / agentic requests</td>
+                      <tr className="bg-cyan-500/10">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-cyan-200">KV Cache Residency (MemKV G3.5)</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-cyan-300">Microsecond random R/W via RDMA</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-cyan-300">Long-context / agentic requests</td>
                         <td className="px-6 py-4"><span className="px-2 py-1 text-xs font-medium bg-cyan-200 text-cyan-800 rounded">ACTIVE TIER</span></td>
                       </tr>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Request Logging</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Continuous small writes</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Every request</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">Request Logging</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Continuous small writes</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Every request</td>
                         <td className="px-6 py-4"><span className="px-2 py-1 text-xs font-medium bg-raspberry/20 text-raspberry rounded">PRIMARY</span></td>
                       </tr>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Feedback Storage</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Small writes</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">When users provide feedback</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">Feedback Storage</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">Small writes</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">When users provide feedback</td>
                         <td className="px-6 py-4"><span className="px-2 py-1 text-xs font-medium bg-raspberry/20 text-raspberry rounded">PRIMARY</span></td>
                       </tr>
                     </tbody>
@@ -600,20 +618,24 @@ export default function Explorer() {
             </>
           )}
         </section>
+      </div>
+      </div>
 
-        {/* Guided sequence — Prev / Next navigation */}
-        <nav className="flex items-stretch justify-between gap-4 border-t border-gray-200 pt-8 mt-4">
+      {/* Guided sequence — Prev / Next navigation (pinned to the bottom of the
+          locked screen so it's always reachable without scrolling the page) */}
+      <div className="relative flex-shrink-0 border-t border-white/10 bg-white/[0.02]">
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-stretch justify-between gap-4">
           {prevView ? (
             <button
               onClick={() => handleViewChange(prevView.id)}
-              className="group flex items-center gap-3 px-5 py-4 rounded-xl bg-white border border-gray-200 hover:border-raspberry/40 hover:shadow-lg transition-all text-left max-w-[48%]"
+              className="group flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-raspberry/40 hover:bg-white/10 transition-all text-left max-w-[48%]"
             >
-              <svg className="w-5 h-5 text-gray-400 group-hover:text-raspberry transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-5 h-5 text-gray-400 group-hover:text-raspberry-light transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
               <span className="min-w-0">
-                <span className="block text-xs font-medium text-gray-400 uppercase tracking-wide">Previous</span>
-                <span className="block font-semibold text-gray-900 truncate">{prevView.name}</span>
+                <span className="block text-[11px] font-medium text-gray-500 uppercase tracking-wide">Previous</span>
+                <span className="block font-semibold text-white truncate">{prevView.name}</span>
               </span>
             </button>
           ) : (
@@ -623,10 +645,10 @@ export default function Explorer() {
           {nextView ? (
             <button
               onClick={() => handleViewChange(nextView.id)}
-              className="group flex items-center gap-3 px-5 py-4 rounded-xl bg-raspberry text-white border border-raspberry hover:bg-raspberry-dark hover:shadow-lg hover:shadow-raspberry/30 transition-all text-right max-w-[48%] ml-auto"
+              className="btn-primary group flex items-center gap-3 px-4 py-2.5 rounded-xl text-white text-right max-w-[48%] ml-auto"
             >
               <span className="min-w-0">
-                <span className="block text-xs font-medium text-white/70 uppercase tracking-wide">Next — Step {currentIndex + 2} of {totalSteps}</span>
+                <span className="block text-[11px] font-medium text-white/70 uppercase tracking-wide">Next — Step {currentIndex + 2} of {totalSteps}</span>
                 <span className="block font-semibold truncate">{nextView.name}</span>
               </span>
               <svg className="w-5 h-5 text-white/80 group-hover:translate-x-0.5 transition-transform flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -634,18 +656,17 @@ export default function Explorer() {
               </svg>
             </button>
           ) : (
-            <div className="flex items-center gap-3 px-5 py-4 rounded-xl bg-emerald-50 border border-emerald-200 text-right max-w-[48%] ml-auto">
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-400/30 text-right max-w-[48%] ml-auto">
               <span>
-                <span className="block text-xs font-medium text-emerald-600 uppercase tracking-wide">Sequence complete</span>
-                <span className="block font-semibold text-emerald-800">You've walked the whole stack</span>
+                <span className="block text-[11px] font-medium text-emerald-400 uppercase tracking-wide">Sequence complete</span>
+                <span className="block font-semibold text-emerald-200">You've walked the whole stack</span>
               </span>
-              <svg className="w-6 h-6 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-6 h-6 text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
           )}
         </nav>
-
       </div>
     </div>
   )

@@ -76,27 +76,25 @@ const intensityConfig: Record<string, { bg: string; text: string; label: string 
 
 export default function Home() {
   return (
-    <div>
-      {/* Hero Section — StarGazer */}
-      <section className="relative cosmos-bg text-white py-16 lg:py-24 overflow-hidden">
-        {/* Twinkling starfield */}
-        <div className="starfield" />
+    // ONE-SCREEN RULE: the entire landing page fits in a single viewport with
+    // no scroll in any direction. Layout locks <main> to the remaining height;
+    // here we fill it and split into hero (left) + 2x2 pipeline grid (right).
+    <div className="lock-screen cosmos-bg text-white">
+      {/* Twinkling starfield + drifting aurora */}
+      <div className="starfield opacity-70" />
+      <div className="aurora bg-raspberry/30 w-[460px] h-[460px] -top-28 -right-20" />
+      <div className="aurora bg-accent-blue/25 w-[380px] h-[380px] -bottom-32 -left-20" style={{ animationDelay: '-6s' }} />
+      <div className="aurora bg-accent-purple/20 w-[320px] h-[320px] top-1/3 left-1/3" style={{ animationDelay: '-11s' }} />
+      <div className="absolute inset-0 pattern-grid opacity-25" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent" />
 
-        {/* Drifting aurora blobs */}
-        <div className="aurora bg-raspberry/30 w-[520px] h-[520px] -top-32 -right-24" />
-        <div className="aurora bg-accent-blue/25 w-[420px] h-[420px] -bottom-40 -left-24" style={{ animationDelay: '-6s' }} />
-        <div className="aurora bg-accent-purple/20 w-[360px] h-[360px] top-1/3 left-1/2" style={{ animationDelay: '-11s' }} />
+      <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 flex flex-col">
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] gap-6 lg:gap-10 items-center">
 
-        {/* Grid pattern overlay */}
-        <div className="absolute inset-0 pattern-grid opacity-40" />
-        {/* Vignette to seat the content */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl">
-            {/* Eyebrow chip */}
+          {/* ── HERO COLUMN ── */}
+          <div className="flex flex-col justify-center">
             <div
-              className="inline-flex items-center gap-2 mb-5 px-3 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-xs font-medium text-gray-300 animate-slide-up"
+              className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-xs font-medium text-gray-300 animate-slide-up self-start"
               style={{ animationDelay: '0.05s', animationFillMode: 'both' }}
             >
               <span className="relative flex h-2 w-2">
@@ -107,7 +105,7 @@ export default function Home() {
             </div>
 
             <h1
-              className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-5 animate-slide-up"
+              className="text-4xl sm:text-5xl xl:text-6xl font-extrabold tracking-tight mb-4 animate-slide-up"
               style={{ animationDelay: '0.1s', animationFillMode: 'both' }}
             >
               The{' '}
@@ -116,7 +114,7 @@ export default function Home() {
             </h1>
 
             <p
-              className="text-lg lg:text-xl text-gray-300 mb-8 leading-relaxed max-w-3xl animate-slide-up"
+              className="text-base lg:text-lg text-gray-300 mb-6 leading-relaxed max-w-xl animate-slide-up"
               style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
             >
               A technical reference for where object storage actually lives in AI/ML pipelines.
@@ -124,12 +122,12 @@ export default function Home() {
             </p>
 
             <div
-              className="flex flex-wrap gap-4 animate-slide-up"
+              className="flex flex-wrap gap-3 animate-slide-up"
               style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
             >
               <Link
                 to="/explorer"
-                className="btn-primary group inline-flex items-center px-8 py-4 text-white font-semibold rounded-xl transition-all"
+                className="btn-primary group inline-flex items-center px-6 py-3 text-white font-semibold rounded-xl transition-all"
               >
                 Start Here
                 <svg className="ml-2 w-5 h-5 nudge-x" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -137,102 +135,51 @@ export default function Home() {
                 </svg>
               </Link>
               <Link
-                to="/glossary"
-                className="inline-flex items-center px-8 py-4 font-semibold rounded-xl text-white border border-white/15 bg-white/5 backdrop-blur-sm hover:bg-white/10 hover:border-white/25 transition-all"
+                to="/compare"
+                className="inline-flex items-center px-6 py-3 font-semibold rounded-xl text-white border border-white/15 bg-white/5 backdrop-blur-sm hover:bg-white/10 hover:border-raspberry/50 transition-all"
               >
-                Glossary & Reference
+                Compare all four
               </Link>
             </div>
           </div>
 
-          {/* Floating medallion — glowing glass "4 Pipelines" */}
-          <div className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2">
-            <div className="relative w-56 h-56 animate-float">
-              {/* Rotating conic halo behind */}
-              <div className="conic-halo" />
-              {/* Orbit rings */}
-              <div className="absolute inset-0 border border-white/10 rounded-full" />
-              <div className="absolute inset-3 border border-raspberry/20 rounded-2xl rotate-12 animate-pulse-glow" />
-              <div className="absolute inset-6 border border-white/10 rounded-2xl -rotate-6" />
-              {/* Glass core */}
-              <div className="absolute inset-10 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_0_50px_-8px_rgba(233,26,69,0.6)] flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-6xl font-extrabold gradient-text drop-shadow-[0_0_20px_rgba(233,26,69,0.5)]">4</div>
-                  <div className="text-xs uppercase tracking-[0.2em] text-gray-400 mt-1">Pipelines</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Pipeline Cards — StarGazer dazzle on a continuous cosmic canvas */}
-      <section className="relative cosmos-bg py-16 lg:py-20 overflow-hidden">
-        {/* Seam glow so the hero flows seamlessly into the cards */}
-        <div className="absolute -top-px inset-x-0 h-px bg-gradient-to-r from-transparent via-raspberry/40 to-transparent" />
-        <div className="aurora bg-accent-purple/15 w-[460px] h-[460px] top-1/4 -right-32" style={{ animationDelay: '-3s' }} />
-        <div className="aurora bg-raspberry/15 w-[380px] h-[380px] bottom-0 -left-28" style={{ animationDelay: '-9s' }} />
-        <div className="absolute inset-0 pattern-dots opacity-20" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
-            <div>
-              <h2 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
-                Four Pipelines.{' '}
-                <span className="gradient-text drop-shadow-[0_0_18px_rgba(233,26,69,0.4)]">Four Storage Stories.</span>
-              </h2>
-              <p className="text-sm lg:text-base text-gray-400 mt-2 max-w-xl">
-                Each AI workload puts storage in a different role. Click any card to explore the details.
-              </p>
-            </div>
-            <Link
-              to="/compare"
-              className="group inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white border border-white/15 bg-white/5 backdrop-blur-sm hover:bg-white/10 hover:border-raspberry/50 transition-all whitespace-nowrap self-start sm:self-auto"
-            >
-              Compare all four
-              <svg className="w-4 h-4 nudge-x" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+          {/* ── PIPELINE GRID COLUMN (2x2 dazzle cards) ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4 min-h-0">
             {pipelines.map((pipeline, index) => (
               <Link
                 key={pipeline.id}
                 to={pipeline.path}
                 style={{
-                  animationDelay: `${index * 110}ms`,
+                  animationDelay: `${index * 90}ms`,
                   ['--card-glow' as string]: pipeline.glow,
                   ['--card-glow-2' as string]: pipeline.glow2,
                 }}
-                className="dazzle-card group p-7 opacity-0 animate-scale-in"
+                className="dazzle-card group p-4 lg:p-5 opacity-0 animate-scale-in flex flex-col"
               >
-                {/* Glow aura + crossing sheen */}
                 <div className="card-aura" />
                 <div className="card-sheen" />
 
-                <div className="relative flex items-start gap-5">
-                  <div className={`dazzle-icon flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center ${pipeline.iconColor}`}>
-                    {pipeline.icon}
+                <div className="relative flex items-center gap-3 mb-2">
+                  <div className={`dazzle-icon flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${pipeline.iconColor}`}>
+                    <span className="[&>svg]:w-6 [&>svg]:h-6">{pipeline.icon}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-2 pr-8">
-                      <h3 className="text-xl lg:text-2xl font-bold text-white">
-                        {pipeline.title}
-                      </h3>
-                      <span className={`px-3 py-1 text-xs font-semibold rounded-full ${intensityConfig[pipeline.intensity].bg} ${intensityConfig[pipeline.intensity].text} shadow-lg`}>
-                        {intensityConfig[pipeline.intensity].label}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-400 mb-3 font-medium uppercase tracking-wide">{pipeline.subtitle}</p>
-                    <p className="text-gray-300 leading-relaxed">{pipeline.description}</p>
+                  <div className="min-w-0">
+                    <h3 className="text-base lg:text-lg font-bold text-white leading-tight truncate">{pipeline.title}</h3>
+                    <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide truncate">{pipeline.subtitle}</p>
                   </div>
                 </div>
 
-                {/* Arrow indicator */}
-                <div className="absolute top-6 right-6 text-gray-500 group-hover:text-white transition-colors duration-300">
-                  <svg className="w-6 h-6 nudge-x" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <span className={`relative self-start mb-2 px-2.5 py-0.5 text-[10px] font-semibold rounded-full ${intensityConfig[pipeline.intensity].bg} ${intensityConfig[pipeline.intensity].text} shadow`}>
+                  {intensityConfig[pipeline.intensity].label}
+                </span>
+
+                <p className="relative text-xs lg:text-[13px] text-gray-400 leading-relaxed line-clamp-3 lg:line-clamp-4">
+                  {pipeline.description}
+                </p>
+
+                <div className="relative mt-auto pt-2 flex items-center gap-1 text-[11px] font-semibold text-gray-500 group-hover:text-white transition-colors">
+                  Explore
+                  <svg className="w-3.5 h-3.5 nudge-x" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
@@ -240,7 +187,15 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </section>
+
+        {/* Slim baseline credit ribbon (footer is hidden on this one-screen route) */}
+        <div className="relative flex-shrink-0 flex flex-col sm:flex-row items-center justify-between gap-2 pt-4 mt-2 border-t border-white/10 text-xs text-gray-500">
+          <span>Where object storage fits in AI/ML pipelines.</span>
+          <span className="text-gray-400">
+            <span className="text-white font-medium">Denny Kalaf</span> · Field Architect, <span className="text-raspberry-light">MinIO</span> · San Francisco
+          </span>
+        </div>
+      </div>
     </div>
   )
 }

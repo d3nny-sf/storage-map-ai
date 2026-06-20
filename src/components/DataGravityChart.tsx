@@ -21,7 +21,7 @@ export default function DataGravityChart() {
   }, [])
   
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-10 shadow-lg">
+    <div className="outta-card p-6 lg:p-10">
       <div className="space-y-5">
         {dataPoints.map((point, index) => {
           const logScale = Math.log10(point.scale + 1) / Math.log10(maxScale + 1)
@@ -36,21 +36,21 @@ export default function DataGravityChart() {
               onMouseLeave={() => setHoveredIndex(null)}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className={`text-sm font-semibold transition-colors duration-200 ${isHovered ? 'text-gray-900' : 'text-gray-700'}`}>
+                <span className={`text-sm font-semibold transition-colors duration-200 ${isHovered ? 'text-white' : 'text-gray-300'}`}>
                   {point.label}
                 </span>
                 <span className={`text-sm font-bold px-3 py-1 rounded-full transition-all duration-300 ${
                   isHovered 
                     ? `bg-gradient-to-r ${point.color} text-white shadow-lg` 
-                    : 'bg-gray-100 text-gray-900'
+                    : 'bg-white/10 text-white'
                 }`}>
                   {point.value}
                 </span>
               </div>
-              <div className="relative h-10 bg-gray-100 rounded-xl overflow-hidden">
+              <div className="relative h-10 bg-white/5 rounded-xl overflow-hidden">
                 {/* Background pattern */}
                 <div className="absolute inset-0 opacity-30" style={{
-                  backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px)'
+                  backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(255,255,255,0.04) 10px, rgba(255,255,255,0.04) 20px)'
                 }} />
                 
                 <div 
@@ -78,7 +78,7 @@ export default function DataGravityChart() {
                 )}
               </div>
               {widthPercent <= 35 && (
-                <p className={`text-xs mt-2 transition-colors duration-200 ${isHovered ? 'text-gray-700' : 'text-gray-500'}`}>
+                <p className={`text-xs mt-2 transition-colors duration-200 ${isHovered ? 'text-gray-300' : 'text-gray-400'}`}>
                   {point.desc}
                 </p>
               )}
@@ -88,25 +88,25 @@ export default function DataGravityChart() {
       </div>
       
       {/* Legend / Explanation */}
-      <div className="mt-10 pt-8 border-t border-gray-200">
+      <div className="mt-10 pt-8 border-t border-white/10">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-raspberry/10 to-raspberry/5 flex items-center justify-center">
-              <svg className="w-5 h-5 text-raspberry" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-raspberry/20 to-raspberry/10 flex items-center justify-center">
+              <svg className="w-5 h-5 text-raspberry-light" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-900">Logarithmic Scale</p>
-              <p className="text-xs text-gray-500">Bars represent relative magnitudes across orders of magnitude</p>
+              <p className="text-sm font-semibold text-white">Logarithmic Scale</p>
+              <p className="text-xs text-gray-400">Bars represent relative magnitudes across orders of magnitude</p>
             </div>
           </div>
           
           <div className="text-center md:text-right">
-            <p className="text-sm text-gray-600">
-              Pre-training data is <span className="font-bold text-raspberry">1,000,000,000x</span> larger
+            <p className="text-sm text-gray-300">
+              Pre-training data is <span className="font-bold text-raspberry-light">1,000,000,000x</span> larger
             </p>
-            <p className="text-xs text-gray-500">than a single inference request</p>
+            <p className="text-xs text-gray-400">than a single inference request</p>
           </div>
         </div>
       </div>
